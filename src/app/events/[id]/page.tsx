@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import type { CampusEvent } from '@/lib/types';
 import { getEventById, updateEvent } from '@/lib/localStorage';
 import EventRegistrationForm from '@/components/EventRegistrationForm';
@@ -10,6 +10,7 @@ import GeneratedContentDialog from '@/components/GeneratedContentDialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { CalendarDays, Clock, MapPin, Users, Info, Edit, Wand2, Loader2, Twitter, Mail } from 'lucide-react';
 import { handleGeneratePromotionalContent } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
@@ -18,6 +19,7 @@ import Image from 'next/image';
 
 export default function EventDetailPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const eventId = params.id as string;
   const { toast } = useToast();
 
@@ -27,6 +29,11 @@ export default function EventDetailPage() {
   const [generatedContent, setGeneratedContent] = useState<string | null>(null);
   const [dialogTitle, setDialogTitle] = useState('');
   const [isDialogOpenned, setIsDialogOpened] = useState(false);
+  const [isAdminView, setIsAdminView] = useState(false);
+
+  useEffect(() => {
+    setIsAdminView(searchParams.get('admin') === 'true');
+  }, [searchParams]);
 
   const fetchEventDetails = useCallback(() => {
     if (eventId) {
@@ -42,7 +49,6 @@ export default function EventDetailPage() {
   }, [fetchEventDetails]);
 
   const handleSuccessfulRegistration = () => {
-    // Re-fetch event details to update attendee count, etc.
     fetchEventDetails();
   };
 
@@ -53,20 +59,20 @@ export default function EventDetailPage() {
     }
     setIsGeneratingContent(true);
     setDialogTitle(contentType === 'socialMediaPost' ? 'Generated Social Media Post' : 'Generated Email Snippet');
-    setGeneratedContent(null); // Clear previous content
+    setGeneratedContent(null); 
     setIsDialogOpened(true);
 
     try {
       const result = await handleGeneratePromotionalContent(event.description, contentType);
       if (result.success && result.content) {
         setGeneratedContent(result.content);
-        if (event) { // Save generated content to event in local storage
+        if (event) { 
           const updatedEvent = {
             ...event,
             [contentType === 'socialMediaPost' ? 'generatedSocialMediaPost' : 'generatedEmailSnippet']: result.content
           };
           updateEvent(updatedEvent);
-          setEvent(updatedEvent); // Update local state
+          setEvent(updatedEvent); 
         }
       } else {
         throw new Error(result.error || 'Unknown error generating content');
@@ -114,12 +120,12 @@ export default function EventDetailPage() {
             <Image 
               src={`https://picsum.photos/seed/${event.id}/1200/400`} 
               alt={`${event.name} banner`} 
-              layout="fill" 
-              objectFit="cover"
+              fill
+              style={{objectFit: "cover"}}
               data-ai-hint="event conference"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-            <CardTitle className="absolute bottom-4 left-4 text-3xl font-bold text-primary-foreground shadow-text">
+            <CardTitle className="absolute bottom-4 left-4 text-3xl font-bold text-primary-foreground">
               {event.name}
             </CardTitle>
           </div>
@@ -153,28 +159,30 @@ export default function EventDetailPage() {
           </CardContent>
         </Card>
 
-        {/* AI Content Generation Section */}
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-xl flex items-center text-primary">
-              <Wand2 className="mr-2 h-5 w-5 text-accent" /> AI Promotional Tools
-            </CardTitle>
-            <CardDescription>Generate promotional content for this event.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Button onClick={() => onGenerateContent('socialMediaPost')} className="w-full justify-start" variant="outline" disabled={isGeneratingContent}>
-              {isGeneratingContent && dialogTitle.includes('Social') ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Twitter className="mr-2 h-4 w-4 text-blue-500" />}
-              Generate Social Media Post
-            </Button>
-            {event.generatedSocialMediaPost && <p className="text-xs text-muted-foreground p-2 border rounded-md bg-muted/30">Last generated post: {event.generatedSocialMediaPost.substring(0,70)}...</p>}
+        {/* AI Content Generation Section - Admin Only */}
+        {isAdminView && (
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-xl flex items-center text-primary">
+                <Wand2 className="mr-2 h-5 w-5 text-accent" /> AI Promotional Tools (Admin)
+              </CardTitle>
+              <CardDescription>Generate promotional content for this event.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button onClick={() => onGenerateContent('socialMediaPost')} className="w-full justify-start" variant="outline" disabled={isGeneratingContent}>
+                {isGeneratingContent && dialogTitle.includes('Social') ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Twitter className="mr-2 h-4 w-4 text-blue-500" />}
+                Generate Social Media Post
+              </Button>
+              {event.generatedSocialMediaPost && <p className="text-xs text-muted-foreground p-2 border rounded-md bg-muted/30">Last generated post: {event.generatedSocialMediaPost.substring(0,70)}...</p>}
 
-            <Button onClick={() => onGenerateContent('emailSnippet')} className="w-full justify-start" variant="outline" disabled={isGeneratingContent}>
-              {isGeneratingContent && dialogTitle.includes('Email') ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4 text-red-500" />}
-              Generate Email Snippet
-            </Button>
-             {event.generatedEmailSnippet && <p className="text-xs text-muted-foreground p-2 border rounded-md bg-muted/30">Last generated email: {event.generatedEmailSnippet.substring(0,70)}...</p>}
-          </CardContent>
-        </Card>
+              <Button onClick={() => onGenerateContent('emailSnippet')} className="w-full justify-start" variant="outline" disabled={isGeneratingContent}>
+                {isGeneratingContent && dialogTitle.includes('Email') ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4 text-red-500" />}
+                Generate Email Snippet
+              </Button>
+               {event.generatedEmailSnippet && <p className="text-xs text-muted-foreground p-2 border rounded-md bg-muted/30">Last generated email: {event.generatedEmailSnippet.substring(0,70)}...</p>}
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Sidebar Column for Registration and Attendees */}
