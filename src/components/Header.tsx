@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, LogOut, UserCircle, Loader2, ShieldCheck } from 'lucide-react';
+import { PlusCircle, LogOut, UserCircle, Loader2, ShieldCheck, LayoutDashboard } from 'lucide-react'; // Added LayoutDashboard
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -31,7 +31,7 @@ export default function Header() {
             <>
               {role === 'admin' && (
                  <Button asChild variant="secondary">
-                    <Link href="/admin/events/create"> {/* Updated Link */}
+                    <Link href="/admin/events/create">
                     <PlusCircle className="mr-2 h-5 w-5" /> Create Event
                     </Link>
                 </Button>
@@ -40,7 +40,7 @@ export default function Header() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                     <Avatar className="h-9 w-9">
-                      <AvatarImage src={user.photoURL || undefined} alt={user.displayName || user.username} />
+                      <AvatarImage src={user.photoURL || `https://picsum.photos/seed/${user.username}/128`} alt={user.displayName || user.username} />
                       <AvatarFallback>
                         {(user.displayName || user.username) ? (user.displayName || user.username).charAt(0).toUpperCase() : <UserCircle className="h-5 w-5"/>}
                       </AvatarFallback>
@@ -63,7 +63,7 @@ export default function Header() {
                   <DropdownMenuSeparator />
                   {role === 'admin' && (
                     <DropdownMenuItem asChild className="cursor-pointer">
-                      <Link href="/admin"> {/* Updated Link */}
+                      <Link href="/admin"> 
                         <ShieldCheck className="mr-2 h-4 w-4" />
                         Admin Dashboard
                       </Link>
@@ -71,9 +71,14 @@ export default function Header() {
                   )}
                    <DropdownMenuItem asChild className="cursor-pointer">
                     <Link href="/dashboard">
-                      {/* Using a generic icon, replace if a better one is available */}
-                      <UserCircle className="mr-2 h-4 w-4" /> 
+                      <LayoutDashboard className="mr-2 h-4 w-4" /> 
                       Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <Link href="/profile">
+                      <UserCircle className="mr-2 h-4 w-4" />
+                      Profile
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
@@ -96,3 +101,4 @@ export default function Header() {
     </header>
   );
 }
+

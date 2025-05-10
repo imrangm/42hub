@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { CalendarDays, Clock, MapPin, Users, Info, Wand2, Loader2, Twitter, Mail, Edit } from 'lucide-react'; // Added Edit
+import { CalendarDays, Clock, MapPin, Users, Info, Wand2, Loader2, Twitter, Mail, Edit } from 'lucide-react';
 import { handleGeneratePromotionalContent } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
@@ -175,6 +175,29 @@ export default function EventDetailPage() {
           </CardContent>
         </Card>
 
+        {/* Attendees Card - Moved here */}
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-xl flex items-center text-primary">
+              <Users className="mr-2 h-5 w-5 text-accent" /> Attendees ({event.attendees.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {event.attendees.length > 0 ? (
+              <ScrollArea className="h-48">
+                <ul className="space-y-2">
+                  {event.attendees.map(attendee => (
+                    <li key={attendee.id} className="text-sm text-foreground p-2 bg-muted/30 rounded-md">{attendee.name} ({attendee.email})</li>
+                  ))}
+                </ul>
+              </ScrollArea>
+            ) : (
+              <p className="text-sm text-muted-foreground">No attendees registered yet. {isAdminView ? '' : 'Be the first!'}</p>
+            )}
+          </CardContent>
+        </Card>
+
+
         {/* AI Content Generation Section - Admin Only */}
         {isAdminView && (
           <Card className="shadow-lg">
@@ -201,7 +224,7 @@ export default function EventDetailPage() {
         )}
       </div>
 
-      {/* Sidebar Column for Registration and Attendees */}
+      {/* Sidebar Column for Registration */}
       <div className="space-y-6">
         {!isAdminView && ( // Hide registration form for admin view of this page
           <Card className="shadow-lg sticky top-24">
@@ -214,27 +237,6 @@ export default function EventDetailPage() {
             </CardContent>
           </Card>
         )}
-
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-xl flex items-center text-primary">
-              <Users className="mr-2 h-5 w-5 text-accent" /> Attendees ({event.attendees.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {event.attendees.length > 0 ? (
-              <ScrollArea className="h-48">
-                <ul className="space-y-2">
-                  {event.attendees.map(attendee => (
-                    <li key={attendee.id} className="text-sm text-foreground p-2 bg-muted/30 rounded-md">{attendee.name} ({attendee.email})</li>
-                  ))}
-                </ul>
-              </ScrollArea>
-            ) : (
-              <p className="text-sm text-muted-foreground">No attendees registered yet. Be the first!</p>
-            )}
-          </CardContent>
-        </Card>
       </div>
 
       <GeneratedContentDialog
@@ -247,3 +249,4 @@ export default function EventDetailPage() {
     </div>
   );
 }
+

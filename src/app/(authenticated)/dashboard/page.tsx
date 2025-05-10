@@ -8,10 +8,12 @@ import EventCard from '@/components/EventCard';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { PlusCircle, CalendarX2, Loader2 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
 export default function DashboardPage() {
   const [events, setEvents] = useState<CampusEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { user, role } = useAuth(); // Get user role
 
   const fetchEvents = useCallback(() => {
     setIsLoading(true);
@@ -53,12 +55,19 @@ export default function DashboardPage() {
         <div className="text-center py-10 bg-card p-8 rounded-lg shadow">
           <CalendarX2 className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
           <p className="text-xl text-muted-foreground mb-4">No upcoming events found.</p>
-          <p className="text-md text-muted-foreground mb-6">Why not create one?</p>
-          <Button asChild size="lg">
-            <Link href="/events/create">
-              <PlusCircle className="mr-2 h-5 w-5" /> Create New Event
-            </Link>
-          </Button>
+          {role === 'admin' && ( // Only show Create Event button if user is admin
+            <>
+              <p className="text-md text-muted-foreground mb-6">Why not create one?</p>
+              <Button asChild size="lg">
+                <Link href="/admin/events/create"> {/* Link to admin create page */}
+                  <PlusCircle className="mr-2 h-5 w-5" /> Create New Event
+                </Link>
+              </Button>
+            </>
+          )}
+          {role !== 'admin' && (
+             <p className="text-md text-muted-foreground">Check back later for new events!</p>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -70,3 +79,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
