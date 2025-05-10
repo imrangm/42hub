@@ -1,19 +1,19 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
-import { Loader2, LogIn } from 'lucide-react';
+import { Loader2, LogIn, AlertTriangle } from 'lucide-react';
 import Image from 'next/image';
-import { Separator } from '@/components/ui/separator'; // Import Separator
+import { Separator } from '@/components/ui/separator';
+import { handle42Callback } from './actions'; // Updated import path
 
 const loginSchema = z.object({
   username: z.string().min(1, { message: 'Username is required.' }),
@@ -40,22 +40,73 @@ const Icon42 = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-
 export default function LoginPage() {
   const router = useRouter();
-  const { signInWithCredentials, user, loading: authLoading, role } = useAuth();
+  const searchParams = useSearchParams();
+  const { signInWithCredentials, signInOAuthUser, user, loading: authLoading, role } = useAuth();
   const [isSubmittingForm, setIsSubmittingForm] = useState(false);
+
+  const [oauthProcessing, setOAuthProcessing] = useState(false);
+  const [oauthError, setOAuthError] = useState<string | null>(null);
 
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
   });
 
+  // Effect to handle 42 OAuth callback if 'code' or 'error' params are present
+  useEffect(() => {
+    const code = searchParams.get('code');
+    const error = searchParams.get('error');
+    const errorDescription = searchParams.get('error_description');
+
+    if (code || error) { // This page load is an OAuth callback
+      setOAuthProcessing(true);
+      setOAuthError(null);
+
+      if (authLoading) return; // Wait for auth state to be determined
+
+      if (user) { // If user somehow already logged in during callback
+        router.push(user.role === 'admin' ? '/admin' : '/dashboard');
+        return;
+      }
+
+      if (error) {
+        setOAuthError(errorDescription || error || '42 authentication failed.');
+        setOAuthProcessing(false);
+        return;
+      }
+
+      if (code) {
+        async function processCallback() {
+          const result = await handle42Callback(code as string);
+          if (result.success && result.user) {
+            await signInOAuthUser(result.user);
+            // signInOAuthUser handles redirection and toast
+            // No need to setOAuthProcessing(false) here as page will redirect
+          } else {
+            setOAuthError(result.error || 'Failed to process 42 login.');
+            setOAuthProcessing(false);
+          }
+        }
+        processCallback();
+      } else {
+        setOAuthError('Invalid OAuth callback state: No code received.');
+        setOAuthProcessing(false);
+      }
+    }
+  }, [searchParams, signInOAuthUser, router, user, authLoading]);
+
+  // Effect to redirect already logged-in users (if not an OAuth callback)
   useEffect(() => {
     if (!authLoading && user) {
-      if (role === 'admin') router.push('/admin');
-      else router.push('/dashboard');
+      // Only redirect if not an OAuth callback in progress
+      if (!searchParams.get('code') && !searchParams.get('error')) {
+        if (role === 'admin') router.push('/admin');
+        else router.push('/dashboard');
+      }
     }
-  }, [user, authLoading, role, router]);
+  }, [user, authLoading, role, router, searchParams]);
+
 
   const onSubmit: SubmitHandler<LoginFormValues> = async (data) => {
     setIsSubmittingForm(true);
@@ -67,18 +118,75 @@ export default function LoginPage() {
     const clientId = process.env.NEXT_PUBLIC_FORTYTWO_CLIENT_ID;
     const redirectUri = process.env.NEXT_PUBLIC_FORTYTWO_REDIRECT_URI;
     
-    if (!clientId || clientId === "YOUR_CLIENT_ID" || !redirectUri || redirectUri.includes("YOUR_REDIRECT_URI")) {
-      alert("42 OAuth is not configured correctly. Please check environment variables.");
+    if (!clientId || clientId === "YOUR_42_CLIENT_ID" || !redirectUri || redirectUri.includes("YOUR_APP_DOMAIN") || redirectUri.includes("YOUR_APP_CALLBACK_URL")) {
+      // Check for specific placeholder values used in README.md defaults.
+      // The "YOUR_APP_DOMAIN" check is for the new redirect URI structure.
+      // "YOUR_APP_CALLBACK_URL" is for the old structure, to catch if not updated.
+      alert("42 OAuth is not configured correctly. Please check environment variables and ensure they are updated as per README.md (the redirect URI should now point to /login).");
       return;
     }
 
     const scope = "public"; // Basic scope
     const responseType = "code";
-    const authUrl = `https://api.intra.42.fr/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=${responseType}&scope=${encodeURIComponent(scope)}`;
+    const authUrl = `https://api.intra.42.fr/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri!)}&response_type=${responseType}&scope=${encodeURIComponent(scope)}`;
     window.location.href = authUrl;
   };
 
-  if (authLoading || (!authLoading && user) ) {
+  // OAuth Callback Processing UI
+  if (oauthProcessing) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-primary via-secondary to-accent p-4">
+        <Card className="w-full max-w-md shadow-xl">
+          <CardHeader className="text-center py-8">
+             <Image 
+                src="https://picsum.photos/seed/login-logo/150/50" 
+                alt="Campus Hub Logo" 
+                width={150} 
+                height={50} 
+                className="mx-auto mb-4"
+                data-ai-hint="abstract logo"
+              />
+          </CardHeader>
+          <CardContent className="flex flex-col items-center text-center space-y-3 pb-8">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+            <CardTitle className="text-2xl">Processing 42 Login...</CardTitle>
+            <CardDescription>Please wait while we verify your identity.</CardDescription>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (oauthError) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-primary via-secondary to-accent p-4">
+        <Card className="w-full max-w-md shadow-xl">
+           <CardHeader className="text-center py-8">
+             <Image 
+                src="https://picsum.photos/seed/login-logo/150/50" 
+                alt="Campus Hub Logo" 
+                width={150} 
+                height={50} 
+                className="mx-auto mb-4"
+                data-ai-hint="abstract logo"
+              />
+          </CardHeader>
+          <CardContent className="flex flex-col items-center text-center space-y-3 pb-8">
+            <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
+            <CardTitle className="text-2xl text-destructive">Login Failed</CardTitle>
+            <CardDescription>{oauthError}</CardDescription>
+            <Button onClick={() => router.push('/login')} variant="link" className="mt-4">
+              Return to Login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+  
+  // General loading state (not OAuth callback, but initial auth check) or if user is logged in (and not an OAuth callback)
+  const isOAuthCallbackInProgress = !!searchParams.get('code') || !!searchParams.get('error');
+  if (!isOAuthCallbackInProgress && (authLoading || (!authLoading && user))) {
     return (
       <div className="flex flex-col min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -89,6 +197,7 @@ export default function LoginPage() {
     );
   }
 
+  // Standard Login Form UI (if not an OAuth callback and not loading/redirecting)
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-primary via-secondary to-accent p-4">
       <Card className="w-full max-w-md shadow-2xl">
@@ -122,7 +231,6 @@ export default function LoginPage() {
                 id="password" 
                 type="password" 
                 {...register('password')} 
-                {...register('password')} 
                 placeholder="Enter your password" 
                 autoComplete="current-password"
               />
@@ -150,7 +258,7 @@ export default function LoginPage() {
               variant="outline" 
               className="w-full text-lg py-3" 
               onClick={handle42Login}
-              disabled={authLoading}
+              disabled={authLoading} // Disable if auth is generally loading
             >
               <Icon42 className="mr-2 h-5 w-5" />
               Sign in with 42

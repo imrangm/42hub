@@ -1,4 +1,3 @@
-
 # Firebase Studio
 
 This is a NextJS starter in Firebase Studio.
@@ -28,20 +27,20 @@ If you are not using Firebase services that require these (like Firebase Auth, F
 To enable "Sign in with 42" functionality, you need to register an application with the 42 Intra API and obtain a Client ID and Client Secret.
 
 ```env
-NEXT_PUBLIC_FORTYTWO_CLIENT_ID="YOUR_42_CLIENT_ID"
-FORTYTWO_CLIENT_SECRET="YOUR_42_CLIENT_SECRET"
-NEXT_PUBLIC_FORTYTWO_REDIRECT_URI="YOUR_APP_CALLBACK_URL" 
-# Example for local development: http://localhost:9002/auth/callback/42
-# This URL MUST be added to your 42 OAuth application's allowed redirect URIs.
-
-NEXT_PUBLIC_APP_URL="http://localhost:9002" 
-# Base URL of your application, used to construct the redirect URI. Update for production.
+NEXT_PUBLIC_FORTYTWO_CLIENT_ID="YOUR_42_CLIENT_ID" # e.g., u-s4t2ud-63b1e7c5cdf76e52e3ad7264504ab99364dbf5f568d3a653b41825bc4878a731
+FORTYTWO_CLIENT_SECRET="YOUR_42_CLIENT_SECRET" # e.g., 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
+NEXT_PUBLIC_APP_URL="https://YOUR_APP_DOMAIN" # Base URL of your application. e.g., http://localhost:9002 or https://6000-firebase-studio-1746805799490.cluster-axf5tvtfjjfekvhwxwkkkzsk2y.cloudworkstations.dev
+NEXT_PUBLIC_FORTYTWO_REDIRECT_URI="https://YOUR_APP_DOMAIN/login" 
+# Full callback URL. Example for local: http://localhost:9002/login
+# Example for deployed: https://6000-firebase-studio-1746805799490.cluster-axf5tvtfjjfekvhwxwkkkzsk2y.cloudworkstations.dev/login
+# This URL MUST be added to your 42 OAuth application's allowed redirect URIs. The path is /login.
 ```
 
 **Important:** 
 - `NEXT_PUBLIC_FORTYTWO_CLIENT_ID` is your 42 application's UID.
 - `FORTYTWO_CLIENT_SECRET` is your 42 application's Secret.
-- `NEXT_PUBLIC_FORTYTWO_REDIRECT_URI` is the callback URL that 42 will redirect users to after authentication. This path is `/auth/callback/42` in this application. Ensure the full URL (e.g., `http://localhost:9002/auth/callback/42` or your production equivalent) is registered in your 42 application settings.
-- `NEXT_PUBLIC_APP_URL` should be the base URL of your application (e.g., `http://localhost:9002` for local development).
+- `NEXT_PUBLIC_APP_URL` should be the base URL of your application (e.g., `http://localhost:9002` for local development, or your production domain).
+- `NEXT_PUBLIC_FORTYTWO_REDIRECT_URI` is the **full** callback URL that 42 will redirect users to after authentication. This path is now `/login` in this application. Ensure this full URL (e.g., `http://localhost:9002/login` or `https://YOUR_APP_DOMAIN/login`) is registered in your 42 application settings.
 
 After setting up your `.env` file, restart your development server for the changes to take effect.
+

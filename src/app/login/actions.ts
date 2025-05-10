@@ -1,7 +1,6 @@
-
 'use server';
 
-import type { CustomUser } from '@/contexts/AuthContext'; // Assuming CustomUser is exported
+import type { CustomUser } from '@/contexts/AuthContext'; 
 
 interface FortyTwoTokenResponse {
   access_token: string;
@@ -40,12 +39,17 @@ interface FortyTwoUser {
 export async function handle42Callback(code: string): Promise<{ success: boolean; user?: CustomUser; error?: string }> {
   const clientId = process.env.NEXT_PUBLIC_FORTYTWO_CLIENT_ID;
   const clientSecret = process.env.FORTYTWO_CLIENT_SECRET;
-  const redirectUri = process.env.NEXT_PUBLIC_FORTYTWO_REDIRECT_URI;
+  const redirectUri = process.env.NEXT_PUBLIC_FORTYTWO_REDIRECT_URI; // This must match the URI used for authorization
 
   if (!clientId || !clientSecret || !redirectUri) {
-    console.error('42 OAuth environment variables are not set.');
-    return { success: false, error: 'Server configuration error for 42 OAuth.' };
+    console.error('42 OAuth environment variables are not set correctly in .env');
+    return { success: false, error: 'Server configuration error for 42 OAuth. Check .env file and README.' };
   }
+   if (clientId === "YOUR_42_CLIENT_ID" || clientSecret === "YOUR_42_CLIENT_SECRET" || redirectUri.includes("YOUR_APP_CALLBACK_URL") || redirectUri.includes("YOUR_APP_DOMAIN")) {
+    console.error('42 OAuth environment variables are using placeholder values.');
+    return { success: false, error: '42 OAuth is not configured with actual credentials. Please update .env based on README.md.' };
+  }
+
 
   try {
     // 1. Exchange code for access token
@@ -59,7 +63,7 @@ export async function handle42Callback(code: string): Promise<{ success: boolean
         client_id: clientId,
         client_secret: clientSecret,
         code: code,
-        redirect_uri: redirectUri,
+        redirect_uri: redirectUri, // Important: This must match the redirect_uri from the auth request
       }),
     });
 
