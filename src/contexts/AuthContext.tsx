@@ -6,7 +6,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 
-interface CustomUser {
+export interface CustomUser { // Exporting for use in actions.ts
   id: string;
   username: string;
   role: 'admin' | 'user';
@@ -19,6 +19,7 @@ interface AuthContextType {
   user: CustomUser | null;
   loading: boolean;
   signInWithCredentials: (username: string, password: string) => Promise<void>;
+  signInOAuthUser: (oauthUser: CustomUser) => Promise<void>; // New method for OAuth
   signOut: () => Promise<void>;
   role: 'admin' | 'user' | null;
 }
@@ -73,7 +74,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signInWithCredentials = async (username: string, password: string) => {
     setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API call
 
     const matchedUserEntry = MOCK_USERS[username.toLowerCase()];
 
@@ -83,29 +84,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       toast({ title: 'Login Successful', description: `Welcome, ${matchedUserEntry.user.displayName || matchedUserEntry.user.username}!` });
       
       if (matchedUserEntry.user.role === 'admin') {
-        // const intendedPath = sessionStorage.getItem('intendedAdminPath') || '/admin';
-        // if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
-        //   router.push(pathname); // Redirect to originally intended admin page if applicable
-        // } else {
-        //   router.push('/admin');
-        // }
-        // sessionStorage.removeItem('intendedAdminPath');
         router.push('/admin');
       } else {
-        // const intendedPath = sessionStorage.getItem('intendedPath') || '/dashboard';
-        // if (!pathname.startsWith('/admin')) { // Don't redirect to non-admin page if trying to access admin
-        //    router.push(intendedPath);
-        // } else {
-        //    router.push('/dashboard');
-        // }
-        // sessionStorage.removeItem('intendedPath');
         router.push('/dashboard');
       }
     } else {
       toast({ title: 'Login Failed', description: 'Invalid username or password.', variant: 'destructive' });
-      setUser(null);
+      setUser(null); // Ensure user state is cleared on failure
       sessionStorage.removeItem('currentUser');
     }
+    setLoading(false);
+  };
+
+  const signInOAuthUser = async (oauthUser: CustomUser) => {
+    setLoading(true);
+    // Here, you might want to check if this OAuth user already exists in your system
+    // or create/update their record. For this mock, we'll just use the provided user.
+    setUser(oauthUser);
+    sessionStorage.setItem('currentUser', JSON.stringify(oauthUser));
+    toast({ title: 'Login Successful', description: `Welcome, ${oauthUser.displayName || oauthUser.username}!` });
+    
+    // OAuth users are typically regular users, redirect to dashboard
+    router.push('/dashboard');
     setLoading(false);
   };
 
@@ -117,16 +117,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     sessionStorage.removeItem('currentUser');
     toast({ title: 'Signed Out', description: 'You have been successfully signed out.' });
     
-    if (isAdminPage) {
+    if (isAdminPage && pathname !== '/admin/login') {
       router.push('/admin/login');
-    } else {
+    } else if (!isAdminPage && pathname !== '/login') {
       router.push('/login');
     }
+    // If already on a login page, no need to push again.
     setLoading(false);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithCredentials, signOut, role: user?.role || null }}>
+    <AuthContext.Provider value={{ user, loading, signInWithCredentials, signInOAuthUser, signOut, role: user?.role || null }}>
       {children}
     </AuthContext.Provider>
   );
