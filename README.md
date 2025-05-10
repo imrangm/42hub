@@ -6,7 +6,7 @@ To get started, take a look at src/app/page.tsx.
 
 ## Environment Variables
 
-Create a `.env` file in the root of your project and add the following environment variables. Replace placeholder values with your actual credentials.
+Create a `.env` file in the root of your project and add the following environment variables. Replace placeholder values with your actual credentials if they differ from the examples derived from your setup.
 
 ### Firebase Configuration (Optional - if using Firebase features)
 
@@ -26,19 +26,21 @@ If you are not using Firebase services that require these (like Firebase Auth, F
 
 To enable "Sign in with 42" functionality, you need to register an application with the 42 Intra API and obtain a Client ID and Client Secret.
 
+**The example values below are taken from the screenshot you provided. Use your actual credentials if they differ, but ensure the `NEXT_PUBLIC_FORTYTWO_REDIRECT_URI` exactly matches what's in your 42 app settings.**
+
 ```env
-NEXT_PUBLIC_FORTYTWO_CLIENT_ID="YOUR_42_CLIENT_ID" 
-# Example: u-s4t2ud-63b1e7c5cdf76e52e3ad7264504ab99364dbf5f568d3a653b41825bc4878a731
+NEXT_PUBLIC_FORTYTWO_CLIENT_ID="u-s4t2ud-63b1e7c5cdf76e52e3ad7264504ab99364dbf5f568d3a653b41825bc4878a731"
+# This is your 42 application's UID. Example from your screenshot.
 
-FORTYTWO_CLIENT_SECRET="YOUR_42_CLIENT_SECRET"
-# Example: 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
+FORTYTWO_CLIENT_SECRET="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"
+# This is your 42 application's Secret. Example from your screenshot.
 
-NEXT_PUBLIC_APP_URL="YOUR_APP_BASE_URL"
+NEXT_PUBLIC_APP_URL="https://6000-firebase-studio-1746805799490.cluster-axf5tvtfjjfekvhwxwkkkzsk2y.cloudworkstations.dev"
 # This is the base URL of your application.
 # Example for local development: "http://localhost:9002"
 # Example for deployed (from your screenshot): "https://6000-firebase-studio-1746805799490.cluster-axf5tvtfjjfekvhwxwkkkzsk2y.cloudworkstations.dev"
 
-NEXT_PUBLIC_FORTYTWO_REDIRECT_URI="YOUR_FULL_42_APP_REDIRECT_URI"
+NEXT_PUBLIC_FORTYTWO_REDIRECT_URI="https://6000-firebase-studio-1746805799490.cluster-axf5tvtfjjfekvhwxwkkkzsk2y.cloudworkstations.dev/login"
 # This MUST be the EXACT Redirect URI registered in your 42 OAuth application settings.
 # It will typically be NEXT_PUBLIC_APP_URL + "/login".
 # Example for local development: "http://localhost:9002/login"
@@ -46,10 +48,15 @@ NEXT_PUBLIC_FORTYTWO_REDIRECT_URI="YOUR_FULL_42_APP_REDIRECT_URI"
 # Ensure this full URL is listed in your 42 app's "Redirect URI" field(s) and exactly matches.
 ```
 
-**Important:**
+**Important Notes for 42 OAuth:**
 -   `NEXT_PUBLIC_FORTYTWO_CLIENT_ID` is your 42 application's UID.
 -   `FORTYTWO_CLIENT_SECRET` is your 42 application's Secret.
 -   `NEXT_PUBLIC_APP_URL` should be the base URL of your application (e.g., `http://localhost:9002` for local development, or your production domain, **without** a trailing slash).
--   `NEXT_PUBLIC_FORTYTWO_REDIRECT_URI` is the **full and exact** callback URL that 42 will redirect users to after authentication. The path is `/login`. This URI must be **identical** to what you have configured in your 42 OAuth application settings. Check for typos, HTTP vs HTTPS, and trailing slashes.
+-   `NEXT_PUBLIC_FORTYTWO_REDIRECT_URI` is the **full and exact** callback URL that 42 will redirect users to after authentication. The path is `/login`. This URI must be **identical** to what you have configured in your 42 OAuth application settings. Check for typos, HTTP vs HTTPS, and trailing slashes. The value in the `.env` file *must exactly match* the value in the 42 Developer Portal.
 
 **After setting up or modifying your `.env` file, you MUST restart your Next.js development server for the changes to take effect.**
+If you still encounter "The redirect uri included is not valid" error:
+1. Double-check the `NEXT_PUBLIC_FORTYTWO_REDIRECT_URI` in your `.env` file.
+2. Double-check the "Redirect URI" field in your 42 application settings on `https://profile.intra.42.fr/oauth/applications`.
+3. Ensure they are absolutely identical (copy-paste is best).
+4. Restart your Next.js server (`npm run dev`).
