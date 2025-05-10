@@ -17,7 +17,7 @@ export default function AuthenticatedLayout({ children }: { children: ReactNode 
     if (!loading && !user) {
       // Store intended path to redirect after login, if desired
       // localStorage.setItem('intendedPath', pathname);
-      router.push('/'); // Redirect to landing/login page
+      router.push('/login'); // Redirect to custom login page
     }
   }, [user, loading, router, pathname]);
 
@@ -42,4 +42,3 @@ export default function AuthenticatedLayout({ children }: { children: ReactNode 
     </div>
   );
 }
-

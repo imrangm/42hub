@@ -3,37 +3,40 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { PlusCircle, ListOrdered, Users, ShieldAlert } from 'lucide-react';
+import { PlusCircle, ListOrdered, Users, ShieldAlert, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-// import { useAuth } from '@/contexts/AuthContext'; // Already handled by AuthenticatedLayout for login
-// import { useRouter } from 'next/navigation'; // Not needed for basic login check, layout handles redirect
+import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function AdminPage() {
-  // const { user, loading } = useAuth(); // user object can be used for role-specific checks
-  // const router = useRouter();
+  const { user, loading, role } = useAuth();
+  const router = useRouter();
 
-  // Example for role-based authorization (conceptual)
-  // useEffect(() => {
-  //   if (!loading && user) {
-  //     // Replace this with your actual admin check logic
-  //     // const isAdmin = user.email === 'admin@example.com' || user.customClaims?.admin === true;
-  //     // if (!isAdmin) {
-  //     //   router.push('/dashboard'); // or an access denied page
-  //     // }
-  //   }
-  // }, [user, loading, router]);
+  useEffect(() => {
+    if (!loading && (!user || role !== 'admin')) {
+      // If not loading, and no user or user is not admin, redirect to dashboard or login
+      router.push(user ? '/dashboard' : '/login'); 
+    }
+  }, [user, loading, role, router]);
 
-  // if (loading) {
-  //   return <div className="flex justify-center items-center min-h-[60vh]"><Loader2 className="h-12 w-12 animate-spin text-primary" /> <p className="ml-4">Loading admin...</p></div>;
-  // }
+  if (loading || !user || role !== 'admin') {
+    return (
+        <div className="flex flex-col min-h-[60vh] items-center justify-center bg-background">
+            <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            <p className="ml-4 text-lg text-muted-foreground mt-4">
+                {loading ? 'Loading admin session...' : 'Verifying admin access...'}
+            </p>
+        </div>
+    );
+  }
 
-  // If not an admin (based on future logic), you might show an access denied message
-  // For now, AuthenticatedLayout ensures user is logged in.
 
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-primary">Admin Dashboard</h1>
+        <p className="text-sm text-muted-foreground">Welcome, {user.displayName || user.username}!</p>
       </div>
 
       <Card className="border-primary bg-primary/5">
@@ -44,9 +47,8 @@ export default function AdminPage() {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-primary/80">
-            This page is now accessible only to authenticated users. For production, implement role-based access control
-            to ensure only authorized administrators can view this dashboard and perform admin actions.
-            You can check user roles (e.g., via Firebase Custom Claims or a database lookup) within this component.
+            This page is accessible only to authenticated administrators. 
+            You are currently logged in as an admin.
           </p>
         </CardContent>
       </Card>

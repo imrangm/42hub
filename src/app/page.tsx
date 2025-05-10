@@ -4,11 +4,25 @@
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { BookOpen, Users, Zap, ArrowRightCircle } from 'lucide-react';
+import { BookOpen, Users, Zap, ArrowRightCircle, LogIn, Loader2 } from 'lucide-react'; // Added Loader2
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function LandingPage() {
   const router = useRouter();
+  const { user, loading } = useAuth();
+
+  const handleGetStartedClick = () => {
+    if (user) {
+      if (user.role === 'admin') {
+        router.push('/admin');
+      } else {
+        router.push('/dashboard');
+      }
+    } else {
+      router.push('/login');
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900 text-white">
@@ -25,11 +39,14 @@ export default function LandingPage() {
             Discover events, connect with peers, and supercharge your university experience with Campus Hub.
           </p>
           <Button 
-            onClick={() => router.push('/dashboard')} 
+            onClick={handleGetStartedClick}
             size="lg" 
             className="bg-accent hover:bg-accent/80 text-accent-foreground text-lg px-8 py-3 rounded-lg shadow-xl transform transition-transform hover:scale-105"
+            disabled={loading}
           >
-            <ArrowRightCircle className="mr-3 h-6 w-6" /> Go to Events Dashboard
+            {loading ? <Loader2 className="mr-3 h-6 w-6 animate-spin" /> : 
+             user ? <ArrowRightCircle className="mr-3 h-6 w-6" /> : <LogIn className="mr-3 h-6 w-6" /> }
+            {user ? (user.role === 'admin' ? 'Go to Admin Panel' : 'Go to Dashboard') : 'Get Started / Sign In'}
           </Button>
         </div>
       </section>

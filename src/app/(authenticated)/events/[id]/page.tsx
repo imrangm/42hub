@@ -24,7 +24,7 @@ export default function EventDetailPage() {
   const searchParams = useSearchParams();
   const eventId = params.id as string;
   const { toast } = useToast();
-  const { user } = useAuth(); // Get user for admin check
+  const { user, role, loading: authLoading } = useAuth(); // Get user and role for admin check
 
   const [event, setEvent] = useState<CampusEvent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,9 +35,9 @@ export default function EventDetailPage() {
   const [isAdminView, setIsAdminView] = useState(false);
 
   useEffect(() => {
-    // Only allow admin view if a user is logged in AND admin param is true
-    setIsAdminView(!!user && searchParams.get('admin') === 'true');
-  }, [searchParams, user]);
+    // Only allow admin view if a user is logged in, is an admin, AND admin param is true
+    setIsAdminView(!authLoading && !!user && role === 'admin' && searchParams.get('admin') === 'true');
+  }, [searchParams, user, role, authLoading]);
 
   const fetchEventDetails = useCallback(() => {
     if (eventId) {
@@ -89,7 +89,7 @@ export default function EventDetailPage() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || authLoading) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
