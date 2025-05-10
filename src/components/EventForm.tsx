@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -42,7 +41,7 @@ export default function EventForm({ eventToEdit }: EventFormProps) {
   const { register, handleSubmit, setValue, watch, reset, formState: { errors, isSubmitting } } = useForm<EventFormValues>({
     resolver: zodResolver(eventFormSchema),
     defaultValues: {
-      date: new Date().toISOString().split('T')[0],
+      date: new Date().toISOString().split('T')[0], // Default to today for new events
     }
   });
 
@@ -57,6 +56,17 @@ export default function EventForm({ eventToEdit }: EventFormProps) {
         organizers: eventToEdit.organizers,
         keywords: eventToEdit.keywords || '',
       });
+    } else if (!isEditMode) {
+        // Ensure form is reset to default for new event creation if eventToEdit becomes undefined
+        reset({
+            name: '',
+            date: new Date().toISOString().split('T')[0],
+            time: '',
+            location: '',
+            description: '',
+            organizers: '',
+            keywords: '',
+        });
     }
   }, [isEditMode, eventToEdit, reset]);
 
@@ -100,26 +110,25 @@ export default function EventForm({ eventToEdit }: EventFormProps) {
       if (isEditMode && eventToEdit) {
         const { keywords, ...eventDataFromForm } = data;
         const updatedEventData: CampusEvent = {
-          ...eventToEdit, // Keeps id, attendees, and any AI generated content
-          ...eventDataFromForm, // Overwrites with form data
-          keywords: keywords, // Ensure keywords are also updated
+          ...eventToEdit, 
+          ...eventDataFromForm, 
+          keywords: keywords, 
         };
         const success = updateEvent(updatedEventData);
         if (success) {
           toast({ title: 'Event Updated!', description: `"${updatedEventData.name}" has been successfully updated.` });
-          router.push(`/events/${updatedEventData.id}?admin=true`);
+          router.push('/admin/events/manage'); // Redirect to admin manage page
         } else {
           throw new Error('Failed to find event for update.');
         }
       } else {
-        const { keywords, ...eventDataToSave } = data; // Exclude keywords from direct save data for new event
+        const { keywords, ...eventDataToSave } = data;
         const newEvent = addEvent(eventDataToSave);
-        // if keywords were provided, update the new event with them
         if (keywords) {
           updateEvent({...newEvent, keywords });
         }
         toast({ title: 'Event Created!', description: `"${newEvent.name}" has been successfully created.` });
-        router.push(`/events/${newEvent.id}?admin=true`);
+        router.push('/admin/events/manage'); // Redirect to admin manage page
       }
     } catch (error: any) {
       toast({

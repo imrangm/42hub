@@ -1,9 +1,8 @@
-
 'use client';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { PlusCircle, ListOrdered, Users, ShieldAlert, Settings } from 'lucide-react'; // Added Settings
+import { PlusCircle, ListOrdered, Users, ShieldAlert, Settings } from 'lucide-react'; 
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 
