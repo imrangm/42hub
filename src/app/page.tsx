@@ -1,28 +1,14 @@
 
 'use client';
 
-import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 import Image from 'next/image';
-import { BookOpen, Users, Zap, LogIn, Loader2 } from 'lucide-react';
+import { BookOpen, Users, Zap, ArrowRightCircle } from 'lucide-react';
 import Link from 'next/link';
 
 export default function LandingPage() {
-  const { user, signInWithGoogle, loading } = useAuth();
   const router = useRouter();
-
-  useEffect(() => {
-    if (user) {
-      router.push('/dashboard');
-    }
-  }, [user, router]);
-
-  const handleSignIn = async () => {
-    await signInWithGoogle();
-    // Navigation to /dashboard is handled by useEffect or AuthProvider
-  };
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900 text-white">
@@ -38,23 +24,13 @@ export default function LandingPage() {
           <p className="text-xl md:text-2xl text-gray-300 mb-10">
             Discover events, connect with peers, and supercharge your university experience with Campus Hub.
           </p>
-          {loading ? (
-            <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-8 py-3 rounded-lg shadow-xl" disabled>
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Authenticating...
-            </Button>
-          ) : !user ? (
-            <Button 
-              onClick={handleSignIn} 
-              size="lg" 
-              className="bg-accent hover:bg-accent/80 text-accent-foreground text-lg px-8 py-3 rounded-lg shadow-xl transform transition-transform hover:scale-105"
-            >
-              <LogIn className="mr-3 h-6 w-6" /> Login with Google
-            </Button>
-          ) : (
-             <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-8 py-3 rounded-lg shadow-xl" asChild>
-               <Link href="/dashboard">Go to Dashboard</Link>
-            </Button>
-          )}
+          <Button 
+            onClick={() => router.push('/dashboard')} 
+            size="lg" 
+            className="bg-accent hover:bg-accent/80 text-accent-foreground text-lg px-8 py-3 rounded-lg shadow-xl transform transition-transform hover:scale-105"
+          >
+            <ArrowRightCircle className="mr-3 h-6 w-6" /> Go to Events Dashboard
+          </Button>
         </div>
       </section>
 
