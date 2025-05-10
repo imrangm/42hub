@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -12,9 +12,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { addEvent } from '@/lib/localStorage';
+import { addEvent, updateEvent } from '@/lib/localStorage';
 import { handleGenerateDescription } from '@/lib/actions';
 import { Wand2, Loader2 } from 'lucide-react';
+import type { CampusEvent } from '@/lib/types';
 
 const eventFormSchema = z.object({
   name: z.string().min(3, { message: 'Event name must be at least 3 characters.' }),
@@ -26,19 +27,38 @@ const eventFormSchema = z.object({
   keywords: z.string().optional(), // For AI description generation
 });
 
-type EventFormValues = z.infer<typeof eventFormSchema>;
+export type EventFormValues = z.infer<typeof eventFormSchema>;
 
-export default function EventForm() {
+interface EventFormProps {
+  eventToEdit?: CampusEvent;
+}
+
+export default function EventForm({ eventToEdit }: EventFormProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [isGeneratingDesc, setIsGeneratingDesc] = useState(false);
+  const isEditMode = !!eventToEdit;
 
-  const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm<EventFormValues>({
+  const { register, handleSubmit, setValue, watch, reset, formState: { errors, isSubmitting } } = useForm<EventFormValues>({
     resolver: zodResolver(eventFormSchema),
     defaultValues: {
-      date: new Date().toISOString().split('T')[0], // Default to today
+      date: new Date().toISOString().split('T')[0],
     }
   });
+
+  useEffect(() => {
+    if (isEditMode && eventToEdit) {
+      reset({
+        name: eventToEdit.name,
+        date: eventToEdit.date,
+        time: eventToEdit.time,
+        location: eventToEdit.location,
+        description: eventToEdit.description,
+        organizers: eventToEdit.organizers,
+        keywords: eventToEdit.keywords || '',
+      });
+    }
+  }, [isEditMode, eventToEdit, reset]);
 
   const eventNameForAI = watch('name');
   const keywordsForAI = watch('keywords');
@@ -77,28 +97,49 @@ export default function EventForm() {
 
   const onSubmit: SubmitHandler<EventFormValues> = (data) => {
     try {
-      const { keywords, ...eventData } = data; // Exclude keywords from event save data
-      const newEvent = addEvent(eventData);
+      if (isEditMode && eventToEdit) {
+        const { keywords, ...eventDataFromForm } = data;
+        const updatedEventData: CampusEvent = {
+          ...eventToEdit, // Keeps id, attendees, and any AI generated content
+          ...eventDataFromForm, // Overwrites with form data
+          keywords: keywords, // Ensure keywords are also updated
+        };
+        const success = updateEvent(updatedEventData);
+        if (success) {
+          toast({ title: 'Event Updated!', description: `"${updatedEventData.name}" has been successfully updated.` });
+          router.push(`/events/${updatedEventData.id}?admin=true`);
+        } else {
+          throw new Error('Failed to find event for update.');
+        }
+      } else {
+        const { keywords, ...eventDataToSave } = data; // Exclude keywords from direct save data for new event
+        const newEvent = addEvent(eventDataToSave);
+        // if keywords were provided, update the new event with them
+        if (keywords) {
+          updateEvent({...newEvent, keywords });
+        }
+        toast({ title: 'Event Created!', description: `"${newEvent.name}" has been successfully created.` });
+        router.push(`/events/${newEvent.id}?admin=true`);
+      }
+    } catch (error: any) {
       toast({
-        title: 'Event Created!',
-        description: `"${newEvent.name}" has been successfully created.`,
-      });
-      router.push(`/events/${newEvent.id}?admin=true`); // Path within (authenticated) group
-    } catch (error) {
-      toast({
-        title: 'Error Creating Event',
-        description: 'Something went wrong. Please try again.',
+        title: `Error ${isEditMode ? 'Updating' : 'Creating'} Event`,
+        description: error.message || 'Something went wrong. Please try again.',
         variant: 'destructive',
       });
-      console.error("Error creating event:", error);
+      console.error(`Error ${isEditMode ? 'updating' : 'creating'} event:`, error);
     }
   };
 
   return (
     <Card className="w-full max-w-2xl mx-auto shadow-xl">
       <CardHeader>
-        <CardTitle className="text-2xl text-primary">Create New Event</CardTitle>
-        <CardDescription>Fill in the details below to create a new campus event.</CardDescription>
+        <CardTitle className="text-2xl text-primary">
+          {isEditMode ? `Edit Event: ${eventToEdit?.name}` : 'Create New Event'}
+        </CardTitle>
+        <CardDescription>
+          {isEditMode ? 'Update the details for this event.' : 'Fill in the details below to create a new campus event.'}
+        </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit(onSubmit)}>
         <CardContent className="space-y-6">
@@ -155,7 +196,7 @@ export default function EventForm() {
         <CardFooter>
           <Button type="submit" className="w-full" disabled={isSubmitting || isGeneratingDesc}>
             {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            Create Event
+            {isEditMode ? 'Update Event' : 'Create Event'}
           </Button>
         </CardFooter>
       </form>

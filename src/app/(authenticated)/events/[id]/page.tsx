@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { CalendarDays, Clock, MapPin, Users, Info, Wand2, Loader2, Twitter, Mail } from 'lucide-react';
+import { CalendarDays, Clock, MapPin, Users, Info, Wand2, Loader2, Twitter, Mail, Edit } from 'lucide-react'; // Added Edit
 import { handleGeneratePromotionalContent } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
@@ -24,7 +24,7 @@ export default function EventDetailPage() {
   const searchParams = useSearchParams();
   const eventId = params.id as string;
   const { toast } = useToast();
-  const { user, role, loading: authLoading } = useAuth(); // Get user and role for admin check
+  const { user, role, loading: authLoading } = useAuth(); 
 
   const [event, setEvent] = useState<CampusEvent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,7 +35,6 @@ export default function EventDetailPage() {
   const [isAdminView, setIsAdminView] = useState(false);
 
   useEffect(() => {
-    // Only allow admin view if a user is logged in, is an admin, AND admin param is true
     setIsAdminView(!authLoading && !!user && role === 'admin' && searchParams.get('admin') === 'true');
   }, [searchParams, user, role, authLoading]);
 
@@ -71,12 +70,15 @@ export default function EventDetailPage() {
       if (result.success && result.content) {
         setGeneratedContent(result.content);
         if (event) { 
-          const updatedEvent = {
-            ...event,
+          const updatedEventFields = {
             [contentType === 'socialMediaPost' ? 'generatedSocialMediaPost' : 'generatedEmailSnippet']: result.content
           };
-          updateEvent(updatedEvent);
-          setEvent(updatedEvent); 
+          const currentEventData = getEventById(event.id); // Get latest event data
+          if (currentEventData) {
+            const eventToUpdate = {...currentEventData, ...updatedEventFields};
+            updateEvent(eventToUpdate);
+            setEvent(eventToUpdate);
+          }
         }
       } else {
         throw new Error(result.error || 'Unknown error generating content');
@@ -160,6 +162,16 @@ export default function EventDetailPage() {
                    <strong className="text-foreground">Organized by:</strong> {event.organizers}
                  </p>
             )}
+
+            {isAdminView && (
+              <div className="pt-4">
+                <Button asChild variant="outline" className="w-full sm:w-auto">
+                  <Link href={`/admin/events/${event.id}/edit`}>
+                    <Edit className="mr-2 h-4 w-4" /> Edit Event (Admin)
+                  </Link>
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -191,15 +203,17 @@ export default function EventDetailPage() {
 
       {/* Sidebar Column for Registration and Attendees */}
       <div className="space-y-6">
-        <Card className="shadow-lg sticky top-24"> {/* Sticky for registration card */}
-          <CardHeader>
-            <CardTitle className="text-xl text-primary">Register</CardTitle>
-            <CardDescription>Secure your spot for this event.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <EventRegistrationForm eventId={eventId} onSuccessfulRegistration={handleSuccessfulRegistration} />
-          </CardContent>
-        </Card>
+        {!isAdminView && ( // Hide registration form for admin view of this page
+          <Card className="shadow-lg sticky top-24">
+            <CardHeader>
+              <CardTitle className="text-xl text-primary">Register</CardTitle>
+              <CardDescription>Secure your spot for this event.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <EventRegistrationForm eventId={eventId} onSuccessfulRegistration={handleSuccessfulRegistration} />
+            </CardContent>
+          </Card>
+        )}
 
         <Card className="shadow-lg">
           <CardHeader>
@@ -212,7 +226,7 @@ export default function EventDetailPage() {
               <ScrollArea className="h-48">
                 <ul className="space-y-2">
                   {event.attendees.map(attendee => (
-                    <li key={attendee.id} className="text-sm text-foreground p-2 bg-muted/30 rounded-md">{attendee.name}</li>
+                    <li key={attendee.id} className="text-sm text-foreground p-2 bg-muted/30 rounded-md">{attendee.name} ({attendee.email})</li>
                   ))}
                 </ul>
               </ScrollArea>

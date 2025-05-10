@@ -3,16 +3,12 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { PlusCircle, ListOrdered, Users, ShieldAlert } from 'lucide-react';
+import { PlusCircle, ListOrdered, Users, ShieldAlert, Settings } from 'lucide-react'; // Added Settings
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-// Loader2 and explicit role/auth checks are removed as they are handled by AdminLayout
 
 export default function AdminPage() {
-  const { user } = useAuth(); // Still useful for displaying user info
-
-  // The AdminLayout now handles loading state, authentication, and role checks.
-  // If this component renders, it means the user is authenticated and is an admin.
+  const { user } = useAuth(); 
 
   return (
     <div className="space-y-8">
@@ -41,25 +37,19 @@ export default function AdminPage() {
             <CardTitle className="text-xl flex items-center text-primary">
               <ListOrdered className="mr-2 h-5 w-5 text-accent" /> Event Management
             </CardTitle>
-            <CardDescription>Create, view, and manage campus events.</CardDescription>
+            <CardDescription>Create, view, edit, and delete campus events.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-muted-foreground">
-              Access tools to add new events to the platform or oversee existing ones.
-            </p>
-            <Button asChild size="lg" className="w-full">
-              <Link href="/admin/events/create"> {/* Updated Link */}
+          <CardContent className="space-y-3">
+             <Button asChild size="lg" className="w-full">
+              <Link href="/admin/events/create">
                 <PlusCircle className="mr-2 h-5 w-5" /> Create New Event
               </Link>
-            </Button>
-            {/* Placeholder for View/Edit Events link */}
-            {/* 
-            <Button asChild variant="outline" className="w-full mt-2">
-              <Link href="/admin/manage-events">
-                View & Manage Events
+            </Button> 
+            <Button asChild variant="outline" className="w-full">
+              <Link href="/admin/events/manage">
+                 <Settings className="mr-2 h-5 w-5" /> Manage Existing Events
               </Link>
             </Button> 
-            */}
           </CardContent>
         </Card>
 
@@ -74,7 +64,6 @@ export default function AdminPage() {
             <p className="text-muted-foreground">
               This section will allow for management of user data and access levels. Currently under development.
             </p>
-            {/* Placeholder for user management tools */}
           </CardContent>
         </Card>
       </div>

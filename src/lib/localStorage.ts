@@ -17,11 +17,11 @@ export function saveEvents(events: CampusEvent[]): void {
   localStorage.setItem(EVENTS_STORAGE_KEY, JSON.stringify(events));
 }
 
-export function addEvent(newEvent: Omit<CampusEvent, 'id' | 'attendees'>): CampusEvent {
+export function addEvent(newEventData: Omit<CampusEvent, 'id' | 'attendees' | 'keywords' | 'generatedDescription' | 'generatedSocialMediaPost' | 'generatedEmailSnippet'>): CampusEvent {
   if (!isClient) throw new Error("Cannot add event on server.");
   const events = getEvents();
   const fullEvent: CampusEvent = {
-    ...newEvent,
+    ...newEventData,
     id: crypto.randomUUID(),
     attendees: [],
   };
@@ -74,4 +74,16 @@ export function updateEvent(updatedEvent: CampusEvent): boolean {
   events[eventIndex] = updatedEvent;
   saveEvents(events);
   return true;
+}
+
+export function deleteEvent(id: string): boolean {
+  if (!isClient) return false;
+  let events = getEvents();
+  const initialLength = events.length;
+  events = events.filter(event => event.id !== id);
+  if (events.length < initialLength) {
+    saveEvents(events);
+    return true;
+  }
+  return false;
 }
