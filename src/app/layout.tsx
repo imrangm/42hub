@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
-import Header from '@/components/Header';
+import { AuthProvider } from '@/contexts/AuthContext'; // Import AuthProvider
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -27,15 +27,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}>
-        <Header />
-        <main className="flex-grow container mx-auto px-4 py-8">
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen bg-background`}>
+        <AuthProvider> {/* Wrap children with AuthProvider */}
           {children}
-        </main>
-        <Toaster />
-        <footer className="bg-muted text-muted-foreground py-6 text-center">
-          <p>&copy; {new Date().getFullYear()} Campus Hub. All rights reserved.</p>
-        </footer>
+          <Toaster />
+        </AuthProvider>
       </body>
     </html>
   );

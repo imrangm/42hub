@@ -83,7 +83,7 @@ export default function EventForm() {
         title: 'Event Created!',
         description: `"${newEvent.name}" has been successfully created.`,
       });
-      router.push(`/events/${newEvent.id}?admin=true`); // Redirect to event detail page in admin view
+      router.push(`/events/${newEvent.id}?admin=true`); // Path within (authenticated) group
     } catch (error) {
       toast({
         title: 'Error Creating Event',
