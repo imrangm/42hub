@@ -27,20 +27,29 @@ If you are not using Firebase services that require these (like Firebase Auth, F
 To enable "Sign in with 42" functionality, you need to register an application with the 42 Intra API and obtain a Client ID and Client Secret.
 
 ```env
-NEXT_PUBLIC_FORTYTWO_CLIENT_ID="YOUR_42_CLIENT_ID" # e.g., u-s4t2ud-63b1e7c5cdf76e52e3ad7264504ab99364dbf5f568d3a653b41825bc4878a731
-FORTYTWO_CLIENT_SECRET="YOUR_42_CLIENT_SECRET" # e.g., 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
-NEXT_PUBLIC_APP_URL="https://YOUR_APP_DOMAIN" # Base URL of your application. e.g., http://localhost:9002 or https://6000-firebase-studio-1746805799490.cluster-axf5tvtfjjfekvhwxwkkkzsk2y.cloudworkstations.dev
-NEXT_PUBLIC_FORTYTWO_REDIRECT_URI="https://YOUR_APP_DOMAIN/login" 
-# Full callback URL. Example for local: http://localhost:9002/login
-# Example for deployed: https://6000-firebase-studio-1746805799490.cluster-axf5tvtfjjfekvhwxwkkkzsk2y.cloudworkstations.dev/login
-# This URL MUST be added to your 42 OAuth application's allowed redirect URIs. The path is /login.
+NEXT_PUBLIC_FORTYTWO_CLIENT_ID="YOUR_42_CLIENT_ID" 
+# Example: u-s4t2ud-63b1e7c5cdf76e52e3ad7264504ab99364dbf5f568d3a653b41825bc4878a731
+
+FORTYTWO_CLIENT_SECRET="YOUR_42_CLIENT_SECRET"
+# Example: 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
+
+NEXT_PUBLIC_APP_URL="YOUR_APP_BASE_URL"
+# This is the base URL of your application.
+# Example for local development: "http://localhost:9002"
+# Example for deployed (from your screenshot): "https://6000-firebase-studio-1746805799490.cluster-axf5tvtfjjfekvhwxwkkkzsk2y.cloudworkstations.dev"
+
+NEXT_PUBLIC_FORTYTWO_REDIRECT_URI="YOUR_FULL_42_APP_REDIRECT_URI"
+# This MUST be the EXACT Redirect URI registered in your 42 OAuth application settings.
+# It will typically be NEXT_PUBLIC_APP_URL + "/login".
+# Example for local development: "http://localhost:9002/login"
+# Example for deployed (from your screenshot): "https://6000-firebase-studio-1746805799490.cluster-axf5tvtfjjfekvhwxwkkkzsk2y.cloudworkstations.dev/login"
+# Ensure this full URL is listed in your 42 app's "Redirect URI" field(s) and exactly matches.
 ```
 
-**Important:** 
-- `NEXT_PUBLIC_FORTYTWO_CLIENT_ID` is your 42 application's UID.
-- `FORTYTWO_CLIENT_SECRET` is your 42 application's Secret.
-- `NEXT_PUBLIC_APP_URL` should be the base URL of your application (e.g., `http://localhost:9002` for local development, or your production domain).
-- `NEXT_PUBLIC_FORTYTWO_REDIRECT_URI` is the **full** callback URL that 42 will redirect users to after authentication. This path is now `/login` in this application. Ensure this full URL (e.g., `http://localhost:9002/login` or `https://YOUR_APP_DOMAIN/login`) is registered in your 42 application settings.
+**Important:**
+-   `NEXT_PUBLIC_FORTYTWO_CLIENT_ID` is your 42 application's UID.
+-   `FORTYTWO_CLIENT_SECRET` is your 42 application's Secret.
+-   `NEXT_PUBLIC_APP_URL` should be the base URL of your application (e.g., `http://localhost:9002` for local development, or your production domain, **without** a trailing slash).
+-   `NEXT_PUBLIC_FORTYTWO_REDIRECT_URI` is the **full and exact** callback URL that 42 will redirect users to after authentication. The path is `/login`. This URI must be **identical** to what you have configured in your 42 OAuth application settings. Check for typos, HTTP vs HTTPS, and trailing slashes.
 
-After setting up your `.env` file, restart your development server for the changes to take effect.
-
+**After setting up or modifying your `.env` file, you MUST restart your Next.js development server for the changes to take effect.**

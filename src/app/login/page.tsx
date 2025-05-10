@@ -118,11 +118,13 @@ export default function LoginPage() {
     const clientId = process.env.NEXT_PUBLIC_FORTYTWO_CLIENT_ID;
     const redirectUri = process.env.NEXT_PUBLIC_FORTYTWO_REDIRECT_URI;
     
-    if (!clientId || clientId === "YOUR_42_CLIENT_ID" || !redirectUri || redirectUri.includes("YOUR_APP_DOMAIN") || redirectUri.includes("YOUR_APP_CALLBACK_URL")) {
-      // Check for specific placeholder values used in README.md defaults.
-      // The "YOUR_APP_DOMAIN" check is for the new redirect URI structure.
-      // "YOUR_APP_CALLBACK_URL" is for the old structure, to catch if not updated.
-      alert("42 OAuth is not configured correctly. Please check environment variables and ensure they are updated as per README.md (the redirect URI should now point to /login).");
+    if (
+      !clientId || clientId === "YOUR_42_CLIENT_ID" ||
+      !redirectUri || redirectUri === "YOUR_FULL_42_APP_REDIRECT_URI" || 
+      redirectUri.includes("YOUR_APP_DOMAIN") || // Legacy placeholder check
+      redirectUri.includes("YOUR_APP_CALLBACK_URL") // Legacy placeholder check
+    ) {
+      alert("42 OAuth is not configured correctly. Please check your .env file for NEXT_PUBLIC_FORTYTWO_CLIENT_ID and NEXT_PUBLIC_FORTYTWO_REDIRECT_URI. Ensure they are updated as per README.md. The redirect URI should be the full URL ending in /login and must exactly match the one in your 42 app settings. Restart your server after .env changes.");
       return;
     }
 
@@ -269,3 +271,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

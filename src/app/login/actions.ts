@@ -39,15 +39,17 @@ interface FortyTwoUser {
 export async function handle42Callback(code: string): Promise<{ success: boolean; user?: CustomUser; error?: string }> {
   const clientId = process.env.NEXT_PUBLIC_FORTYTWO_CLIENT_ID;
   const clientSecret = process.env.FORTYTWO_CLIENT_SECRET;
-  const redirectUri = process.env.NEXT_PUBLIC_FORTYTWO_REDIRECT_URI; // This must match the URI used for authorization
+  const redirectUri = process.env.NEXT_PUBLIC_FORTYTWO_REDIRECT_URI; 
 
-  if (!clientId || !clientSecret || !redirectUri) {
-    console.error('42 OAuth environment variables are not set correctly in .env');
-    return { success: false, error: 'Server configuration error for 42 OAuth. Check .env file and README.' };
-  }
-   if (clientId === "YOUR_42_CLIENT_ID" || clientSecret === "YOUR_42_CLIENT_SECRET" || redirectUri.includes("YOUR_APP_CALLBACK_URL") || redirectUri.includes("YOUR_APP_DOMAIN")) {
-    console.error('42 OAuth environment variables are using placeholder values.');
-    return { success: false, error: '42 OAuth is not configured with actual credentials. Please update .env based on README.md.' };
+  if (
+    !clientId || clientId === "YOUR_42_CLIENT_ID" ||
+    !clientSecret || clientSecret === "YOUR_42_CLIENT_SECRET" ||
+    !redirectUri || redirectUri === "YOUR_FULL_42_APP_REDIRECT_URI" ||
+    redirectUri.includes("YOUR_APP_DOMAIN") || // Legacy placeholder
+    redirectUri.includes("YOUR_APP_CALLBACK_URL") // Legacy placeholder
+  ) {
+    console.error('42 OAuth environment variables are not set correctly or are using placeholder values in .env. Ensure NEXT_PUBLIC_FORTYTWO_CLIENT_ID, FORTYTWO_CLIENT_SECRET, and NEXT_PUBLIC_FORTYTWO_REDIRECT_URI are correctly set. Restart your server after changes.');
+    return { success: false, error: 'Server configuration error for 42 OAuth. Please check .env file and README.md, then restart the server.' };
   }
 
 
@@ -109,3 +111,4 @@ export async function handle42Callback(code: string): Promise<{ success: boolean
     return { success: false, error: error.message || 'An unexpected error occurred during 42 authentication.' };
   }
 }
+
