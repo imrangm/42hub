@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -11,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { addEvent, updateEvent } from '@/lib/localStorage';
+import { addEvent, updateEvent, type NewEventPayload } from '@/lib/localStorage';
 import { handleGenerateDescription } from '@/lib/actions';
 import { Wand2, Loader2 } from 'lucide-react';
 import type { CampusEvent } from '@/lib/types';
@@ -42,6 +43,7 @@ export default function EventForm({ eventToEdit }: EventFormProps) {
     resolver: zodResolver(eventFormSchema),
     defaultValues: {
       date: new Date().toISOString().split('T')[0], // Default to today for new events
+      keywords: '',
     }
   });
 
@@ -108,27 +110,31 @@ export default function EventForm({ eventToEdit }: EventFormProps) {
   const onSubmit: SubmitHandler<EventFormValues> = (data) => {
     try {
       if (isEditMode && eventToEdit) {
-        const { keywords, ...eventDataFromForm } = data;
         const updatedEventData: CampusEvent = {
           ...eventToEdit, 
-          ...eventDataFromForm, 
-          keywords: keywords, 
+          ...data, // This will correctly overwrite fields including keywords
         };
         const success = updateEvent(updatedEventData);
         if (success) {
           toast({ title: 'Event Updated!', description: `"${updatedEventData.name}" has been successfully updated.` });
-          router.push('/admin/events/manage'); // Redirect to admin manage page
+          router.push('/admin/events/manage'); 
         } else {
           throw new Error('Failed to find event for update.');
         }
       } else {
-        const { keywords, ...eventDataToSave } = data;
-        const newEvent = addEvent(eventDataToSave);
-        if (keywords) {
-          updateEvent({...newEvent, keywords });
-        }
+        // data is EventFormValues which is compatible with NewEventPayload
+        const newEventPayload: NewEventPayload = {
+            name: data.name,
+            date: data.date,
+            time: data.time,
+            location: data.location,
+            description: data.description,
+            organizers: data.organizers,
+            keywords: data.keywords || undefined,
+        };
+        const newEvent = addEvent(newEventPayload);
         toast({ title: 'Event Created!', description: `"${newEvent.name}" has been successfully created.` });
-        router.push('/admin/events/manage'); // Redirect to admin manage page
+        router.push('/admin/events/manage'); 
       }
     } catch (error: any) {
       toast({
@@ -212,3 +218,4 @@ export default function EventForm({ eventToEdit }: EventFormProps) {
     </Card>
   );
 }
+

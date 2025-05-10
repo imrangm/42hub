@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, LogOut, UserCircle, Loader2, ShieldCheck, LayoutDashboard } from 'lucide-react'; // Added LayoutDashboard
+import { LogOut, UserCircle, Loader2, ShieldCheck, LayoutDashboard } from 'lucide-react'; // Removed PlusCircle
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -29,13 +29,7 @@ export default function Header() {
             <Loader2 className="h-6 w-6 animate-spin text-primary-foreground" />
           ) : user ? (
             <>
-              {role === 'admin' && (
-                 <Button asChild variant="secondary">
-                    <Link href="/admin/events/create">
-                    <PlusCircle className="mr-2 h-5 w-5" /> Create Event
-                    </Link>
-                </Button>
-              )}
+              {/* Removed Create Event button from here for admin, it's available on admin pages */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full">

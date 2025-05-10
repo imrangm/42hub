@@ -6,6 +6,8 @@ const EVENTS_STORAGE_KEY = 'campusHubEvents';
 // Ensure functions are only called on the client side
 const isClient = typeof window !== 'undefined';
 
+export type NewEventPayload = Pick<CampusEvent, 'name' | 'date' | 'time' | 'location' | 'description' | 'organizers'> & { keywords?: string };
+
 export function getEvents(): CampusEvent[] {
   if (!isClient) return [];
   const eventsJson = localStorage.getItem(EVENTS_STORAGE_KEY);
@@ -17,13 +19,23 @@ export function saveEvents(events: CampusEvent[]): void {
   localStorage.setItem(EVENTS_STORAGE_KEY, JSON.stringify(events));
 }
 
-export function addEvent(newEventData: Omit<CampusEvent, 'id' | 'attendees' | 'keywords' | 'generatedDescription' | 'generatedSocialMediaPost' | 'generatedEmailSnippet'>): CampusEvent {
+export function addEvent(newEventData: NewEventPayload): CampusEvent {
   if (!isClient) throw new Error("Cannot add event on server.");
   const events = getEvents();
   const fullEvent: CampusEvent = {
-    ...newEventData,
     id: crypto.randomUUID(),
     attendees: [],
+    name: newEventData.name,
+    date: newEventData.date,
+    time: newEventData.time,
+    location: newEventData.location,
+    description: newEventData.description,
+    organizers: newEventData.organizers,
+    keywords: newEventData.keywords,
+    // Initialize AI generated fields as undefined
+    generatedDescription: undefined,
+    generatedSocialMediaPost: undefined,
+    generatedEmailSnippet: undefined,
   };
   events.push(fullEvent);
   saveEvents(events);
@@ -87,3 +99,4 @@ export function deleteEvent(id: string): boolean {
   }
   return false;
 }
+
