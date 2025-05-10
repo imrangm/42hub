@@ -21,7 +21,7 @@ export default function Header() {
   return (
     <header className="bg-primary text-primary-foreground shadow-md sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        <Link href={user ? "/dashboard" : "/"} className="text-2xl font-bold hover:opacity-90 transition-opacity">
+        <Link href={user ? (role === 'admin' ? "/admin" : "/dashboard") : "/"} className="text-2xl font-bold hover:opacity-90 transition-opacity">
           Campus Hub
         </Link>
         <div className="flex items-center gap-4">
@@ -31,7 +31,7 @@ export default function Header() {
             <>
               {role === 'admin' && (
                  <Button asChild variant="secondary">
-                    <Link href="/events/create">
+                    <Link href="/admin/events/create"> {/* Updated Link */}
                     <PlusCircle className="mr-2 h-5 w-5" /> Create Event
                     </Link>
                 </Button>
@@ -63,7 +63,7 @@ export default function Header() {
                   <DropdownMenuSeparator />
                   {role === 'admin' && (
                     <DropdownMenuItem asChild className="cursor-pointer">
-                      <Link href="/admin">
+                      <Link href="/admin"> {/* Updated Link */}
                         <ShieldCheck className="mr-2 h-4 w-4" />
                         Admin Dashboard
                       </Link>
@@ -86,7 +86,7 @@ export default function Header() {
             </>
           ) : (
              <Button asChild variant="secondary">
-                <Link href="/login"> {/* Updated to /login */}
+                <Link href="/login"> 
                    Sign In
                 </Link>
               </Button>

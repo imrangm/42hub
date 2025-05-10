@@ -10,10 +10,9 @@ interface CustomUser {
   id: string;
   username: string;
   role: 'admin' | 'user';
-  // Add email and displayName for compatibility with Header, or adjust Header
   email?: string; 
   displayName?: string;
-  photoURL?: string | null; // For Avatar compatibility
+  photoURL?: string | null;
 }
 
 interface AuthContextType {
@@ -26,28 +25,27 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock user data - IN A REAL APP, DO NOT DO THIS. PASSWORDS SHOULD BE HASHED AND STORED SECURELY.
 const MOCK_USERS: Record<string, { passwordHash: string; user: CustomUser }> = {
   admin: {
-    passwordHash: 'admin', // In a real app, this would be a bcrypt hash
+    passwordHash: 'admin',
     user: {
       id: 'admin-001',
       username: 'admin',
       role: 'admin',
       displayName: 'Administrator',
       email: 'admin@example.com',
-      photoURL: null, // Or a generic admin avatar URL
+      photoURL: null, 
     },
   },
   user1: {
-    passwordHash: 'userpass', // In a real app, this would be a bcrypt hash
+    passwordHash: 'userpass',
     user: {
       id: 'user-001',
       username: 'user1',
       role: 'user',
       displayName: 'User One',
       email: 'user1@example.com',
-      photoURL: null, // Or a generic user avatar URL
+      photoURL: null, 
     },
   },
 };
@@ -60,7 +58,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Simulate loading user from session storage or a token
     const sessionUserJson = sessionStorage.getItem('currentUser');
     if (sessionUserJson) {
       try {
@@ -76,19 +73,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signInWithCredentials = async (username: string, password: string) => {
     setLoading(true);
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 500));
 
     const matchedUserEntry = MOCK_USERS[username.toLowerCase()];
 
-    if (matchedUserEntry && matchedUserEntry.passwordHash === password) { // Plain text comparison (BAD for production)
+    if (matchedUserEntry && matchedUserEntry.passwordHash === password) {
       setUser(matchedUserEntry.user);
       sessionStorage.setItem('currentUser', JSON.stringify(matchedUserEntry.user));
       toast({ title: 'Login Successful', description: `Welcome, ${matchedUserEntry.user.displayName || matchedUserEntry.user.username}!` });
       
       if (matchedUserEntry.user.role === 'admin') {
+        // const intendedPath = sessionStorage.getItem('intendedAdminPath') || '/admin';
+        // if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
+        //   router.push(pathname); // Redirect to originally intended admin page if applicable
+        // } else {
+        //   router.push('/admin');
+        // }
+        // sessionStorage.removeItem('intendedAdminPath');
         router.push('/admin');
       } else {
+        // const intendedPath = sessionStorage.getItem('intendedPath') || '/dashboard';
+        // if (!pathname.startsWith('/admin')) { // Don't redirect to non-admin page if trying to access admin
+        //    router.push(intendedPath);
+        // } else {
+        //    router.push('/dashboard');
+        // }
+        // sessionStorage.removeItem('intendedPath');
         router.push('/dashboard');
       }
     } else {
@@ -101,12 +111,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     setLoading(true);
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 300));
+    const isAdminPage = pathname.startsWith('/admin');
     setUser(null);
     sessionStorage.removeItem('currentUser');
     toast({ title: 'Signed Out', description: 'You have been successfully signed out.' });
-    router.push('/login');
+    
+    if (isAdminPage) {
+      router.push('/admin/login');
+    } else {
+      router.push('/login');
+    }
     setLoading(false);
   };
 

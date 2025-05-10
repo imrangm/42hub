@@ -3,40 +3,22 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { PlusCircle, ListOrdered, Users, ShieldAlert, Loader2 } from 'lucide-react';
+import { PlusCircle, ListOrdered, Users, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+// Loader2 and explicit role/auth checks are removed as they are handled by AdminLayout
 
 export default function AdminPage() {
-  const { user, loading, role } = useAuth();
-  const router = useRouter();
+  const { user } = useAuth(); // Still useful for displaying user info
 
-  useEffect(() => {
-    if (!loading && (!user || role !== 'admin')) {
-      // If not loading, and no user or user is not admin, redirect to dashboard or login
-      router.push(user ? '/dashboard' : '/login'); 
-    }
-  }, [user, loading, role, router]);
-
-  if (loading || !user || role !== 'admin') {
-    return (
-        <div className="flex flex-col min-h-[60vh] items-center justify-center bg-background">
-            <Loader2 className="h-12 w-12 animate-spin text-primary" />
-            <p className="ml-4 text-lg text-muted-foreground mt-4">
-                {loading ? 'Loading admin session...' : 'Verifying admin access...'}
-            </p>
-        </div>
-    );
-  }
-
+  // The AdminLayout now handles loading state, authentication, and role checks.
+  // If this component renders, it means the user is authenticated and is an admin.
 
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-primary">Admin Dashboard</h1>
-        <p className="text-sm text-muted-foreground">Welcome, {user.displayName || user.username}!</p>
+        <p className="text-sm text-muted-foreground">Welcome, {user?.displayName || user?.username}!</p>
       </div>
 
       <Card className="border-primary bg-primary/5">
@@ -66,7 +48,7 @@ export default function AdminPage() {
               Access tools to add new events to the platform or oversee existing ones.
             </p>
             <Button asChild size="lg" className="w-full">
-              <Link href="/events/create">
+              <Link href="/admin/events/create"> {/* Updated Link */}
                 <PlusCircle className="mr-2 h-5 w-5" /> Create New Event
               </Link>
             </Button>

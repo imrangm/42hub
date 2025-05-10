@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
-import { Loader2, LogIn } from 'lucide-react';
+import { Loader2, LogIn, ShieldAlert } from 'lucide-react';
 import Image from 'next/image';
 
 const loginSchema = z.object({
@@ -21,7 +21,7 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-export default function LoginPage() {
+export default function AdminLoginPage() {
   const router = useRouter();
   const { signInWithCredentials, user, loading: authLoading, role } = useAuth();
   const [isSubmittingForm, setIsSubmittingForm] = useState(false);
@@ -32,15 +32,15 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!authLoading && user) {
-      // Let signInWithCredentials handle specific role-based redirection
-      // if (role === 'admin') {
-      //   router.push('/admin');
-      // } else {
-      //   router.push('/dashboard');
-      // }
-      // If user is already logged in and tries to access /login, redirect them appropriately
-      if (role === 'admin') router.push('/admin');
-      else router.push('/dashboard');
+      if (role === 'admin') {
+        // Redirect to admin dashboard or intended admin page
+        // const intendedPath = sessionStorage.getItem('intendedAdminPath') || '/admin';
+        // sessionStorage.removeItem('intendedAdminPath');
+        router.push('/admin');
+      } else {
+        // If a non-admin somehow logs in via admin login, redirect to general dashboard
+        router.push('/dashboard');
+      }
     }
   }, [user, authLoading, role, router]);
 
@@ -48,54 +48,66 @@ export default function LoginPage() {
     setIsSubmittingForm(true);
     await signInWithCredentials(data.username, data.password);
     setIsSubmittingForm(false);
-    // Redirection is handled by signInWithCredentials or useEffect
+    // Redirection is handled by useEffect or signInWithCredentials
   };
 
-  if (authLoading || (!authLoading && user) ) {
+  if (authLoading || (!authLoading && user && role === 'admin') ) {
     return (
       <div className="flex flex-col min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
         <p className="mt-4 text-lg text-muted-foreground">
-           { user ? (role === 'admin' ? 'Redirecting to Admin...' : 'Redirecting to Dashboard...') : 'Loading session...' }
+          { user ? 'Redirecting to Admin Dashboard...' : 'Loading admin session...' }
         </p>
       </div>
     );
   }
+  
+  // If user is logged in but not admin, they shouldn't see this page.
+  // This case should ideally be handled by the admin layout if they try to access /admin/* first.
+  // If they directly navigate to /admin/login and are logged in as non-admin, redirect them.
+   useEffect(() => {
+    if (!authLoading && user && role !== 'admin') {
+      router.push('/dashboard');
+    }
+  }, [user, authLoading, role, router]);
+
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-primary via-secondary to-accent p-4">
       <Card className="w-full max-w-md shadow-2xl">
         <CardHeader className="text-center">
-          <Image 
-            src="https://picsum.photos/seed/login-logo/150/50" 
-            alt="Campus Hub Logo" 
+           <Image 
+            src="https://picsum.photos/seed/admin-logo/150/50" 
+            alt="Campus Hub Admin Logo" 
             width={150} 
             height={50} 
             className="mx-auto mb-4"
-            data-ai-hint="abstract logo"
+            data-ai-hint="shield logo"
           />
-          <CardTitle className="text-3xl font-bold text-primary">Welcome Back</CardTitle>
-          <CardDescription>Sign in to access your Campus Hub account.</CardDescription>
+          <CardTitle className="text-3xl font-bold text-primary flex items-center justify-center">
+            <ShieldAlert className="mr-2 h-8 w-8 text-accent" /> Admin Sign In
+          </CardTitle>
+          <CardDescription>Access the Campus Hub Administration Panel.</CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username">Admin Username</Label>
               <Input 
                 id="username" 
                 {...register('username')} 
-                placeholder="e.g., admin or user1" 
+                placeholder="Enter admin username" 
                 autoComplete="username"
               />
               {errors.username && <p className="text-sm text-destructive">{errors.username.message}</p>}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Admin Password</Label>
               <Input 
                 id="password" 
                 type="password" 
                 {...register('password')} 
-                placeholder="Enter your password" 
+                placeholder="Enter admin password" 
                 autoComplete="current-password"
               />
               {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
@@ -104,10 +116,10 @@ export default function LoginPage() {
           <CardFooter className="flex flex-col">
             <Button type="submit" className="w-full text-lg py-3" disabled={isSubmittingForm || authLoading}>
               {isSubmittingForm || authLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <LogIn className="mr-2 h-5 w-5" />}
-              Sign In
+              Sign In to Admin Panel
             </Button>
-            <p className="mt-4 text-xs text-muted-foreground text-center">
-              Admin: admin/admin <br /> User: user1/userpass
+             <p className="mt-4 text-xs text-muted-foreground text-center">
+              Admin credentials: admin/admin
             </p>
           </CardFooter>
         </form>
