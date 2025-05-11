@@ -13,7 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, LogIn, AlertTriangle } from 'lucide-react';
 import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
-import { handle42Callback } from './actions'; // Updated import path
+import { handle42Callback } from './actions';
 
 const loginSchema = z.object({
   username: z.string().min(1, { message: 'Username is required.' }),
@@ -36,7 +36,7 @@ const Icon42 = (props: React.SVGProps<SVGSVGElement>) => (
     strokeLinejoin="round"
     {...props}
   >
-    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon> {/* Simple representation */}
+    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
   </svg>
 );
 
@@ -45,6 +45,7 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const { signInWithCredentials, signInOAuthUser, user, loading: authLoading, role } = useAuth();
   const [isSubmittingForm, setIsSubmittingForm] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
   const [oauthProcessing, setOAuthProcessing] = useState(false);
   const [oauthError, setOAuthError] = useState<string | null>(null);
@@ -53,19 +54,26 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
+  // Set isClient to true after component mounts
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   // Effect to handle 42 OAuth callback if 'code' or 'error' params are present
   useEffect(() => {
+    if (!isClient) return; // Skip if not client-side
+
     const code = searchParams.get('code');
     const error = searchParams.get('error');
     const errorDescription = searchParams.get('error_description');
 
-    if (code || error) { // This page load is an OAuth callback
+    if (code || error) {
       setOAuthProcessing(true);
       setOAuthError(null);
 
-      if (authLoading) return; // Wait for auth state to be determined
+      if (authLoading) return;
 
-      if (user) { // If user somehow already logged in during callback
+      if (user) {
         router.push(user.role === 'admin' ? '/admin' : '/dashboard');
         return;
       }
@@ -81,8 +89,6 @@ export default function LoginPage() {
           const result = await handle42Callback(code as string);
           if (result.success && result.user) {
             await signInOAuthUser(result.user);
-            // signInOAuthUser handles redirection and toast
-            // No need to setOAuthProcessing(false) here as page will redirect
           } else {
             setOAuthError(result.error || 'Failed to process 42 login.');
             setOAuthProcessing(false);
@@ -94,19 +100,19 @@ export default function LoginPage() {
         setOAuthProcessing(false);
       }
     }
-  }, [searchParams, signInOAuthUser, router, user, authLoading]);
+  }, [searchParams, signInOAuthUser, router, user, authLoading, isClient]);
 
-  // Effect to redirect already logged-in users (if not an OAuth callback)
+  // Effect to redirect already logged-in users
   useEffect(() => {
+    if (!isClient) return; // Skip if not client-side
+
     if (!authLoading && user) {
-      // Only redirect if not an OAuth callback in progress
       if (!searchParams.get('code') && !searchParams.get('error')) {
         if (role === 'admin') router.push('/admin');
         else router.push('/dashboard');
       }
     }
-  }, [user, authLoading, role, router, searchParams]);
-
+  }, [user, authLoading, role, router, searchParams, isClient]);
 
   const onSubmit: SubmitHandler<LoginFormValues> = async (data) => {
     setIsSubmittingForm(true);
@@ -115,24 +121,35 @@ export default function LoginPage() {
   };
 
   const handle42Login = () => {
+    if (!isClient) return; // Skip if not client-side
+
     const clientId = process.env.NEXT_PUBLIC_FORTYTWO_CLIENT_ID;
     const redirectUri = process.env.NEXT_PUBLIC_FORTYTWO_REDIRECT_URI;
     
-    if (
-      !clientId || clientId === "YOUR_42_CLIENT_ID" ||
-      !redirectUri || redirectUri === "YOUR_FULL_42_APP_REDIRECT_URI" || 
-      redirectUri.includes("YOUR_APP_DOMAIN") || // Legacy placeholder check
-      redirectUri.includes("YOUR_APP_CALLBACK_URL") // Legacy placeholder check
-    ) {
-      alert("42 OAuth is not configured correctly. Please check your .env file for NEXT_PUBLIC_FORTYTWO_CLIENT_ID and NEXT_PUBLIC_FORTYTWO_REDIRECT_URI. Ensure they are updated as per README.md. The redirect URI should be the full URL ending in /login and must exactly match the one in your 42 app settings. Restart your server after .env changes.");
+    if (!clientId || !redirectUri) {
+      alert("42 OAuth is not configured correctly. Please check your environment variables.");
       return;
     }
 
-    const scope = "public"; // Basic scope
+    const scope = "public";
     const responseType = "code";
-    const authUrl = `https://api.intra.42.fr/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri!)}&response_type=${responseType}&scope=${encodeURIComponent(scope)}`;
+    const authUrl = `https://api.intra.42.fr/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=${responseType}&scope=${encodeURIComponent(scope)}`;
     window.location.href = authUrl;
   };
+
+  // Show loading state during SSR
+  if (!isClient) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-primary via-secondary to-accent p-4">
+        <Card className="w-full max-w-md shadow-2xl">
+          <CardContent className="flex flex-col items-center justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="mt-4 text-muted-foreground">Loading...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // OAuth Callback Processing UI
   if (oauthProcessing) {
@@ -140,14 +157,14 @@ export default function LoginPage() {
       <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-primary via-secondary to-accent p-4">
         <Card className="w-full max-w-md shadow-xl">
           <CardHeader className="text-center py-8">
-             <Image 
-                src="https://picsum.photos/seed/login-logo/150/50" 
-                alt="Campus Hub Logo" 
-                width={150} 
-                height={50} 
-                className="mx-auto mb-4"
-                data-ai-hint="abstract logo"
-              />
+            <Image 
+              src="https://picsum.photos/seed/login-logo/150/50" 
+              alt="Campus Hub Logo" 
+              width={150} 
+              height={50} 
+              className="mx-auto mb-4"
+              priority
+            />
           </CardHeader>
           <CardContent className="flex flex-col items-center text-center space-y-3 pb-8">
             <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
@@ -163,15 +180,15 @@ export default function LoginPage() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-primary via-secondary to-accent p-4">
         <Card className="w-full max-w-md shadow-xl">
-           <CardHeader className="text-center py-8">
-             <Image 
-                src="https://picsum.photos/seed/login-logo/150/50" 
-                alt="Campus Hub Logo" 
-                width={150} 
-                height={50} 
-                className="mx-auto mb-4"
-                data-ai-hint="abstract logo"
-              />
+          <CardHeader className="text-center py-8">
+            <Image 
+              src="https://picsum.photos/seed/login-logo/150/50" 
+              alt="Campus Hub Logo" 
+              width={150} 
+              height={50} 
+              className="mx-auto mb-4"
+              priority
+            />
           </CardHeader>
           <CardContent className="flex flex-col items-center text-center space-y-3 pb-8">
             <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
@@ -185,21 +202,20 @@ export default function LoginPage() {
       </div>
     );
   }
-  
-  // General loading state (not OAuth callback, but initial auth check) or if user is logged in (and not an OAuth callback)
-  const isOAuthCallbackInProgress = !!searchParams.get('code') || !!searchParams.get('error');
-  if (!isOAuthCallbackInProgress && (authLoading || (!authLoading && user))) {
+
+  // Loading state for auth check
+  if (authLoading || (!authLoading && user)) {
     return (
       <div className="flex flex-col min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
         <p className="mt-4 text-lg text-muted-foreground">
-           { user ? (role === 'admin' ? 'Redirecting to Admin...' : 'Redirecting to Dashboard...') : 'Loading session...' }
+          {user ? (role === 'admin' ? 'Redirecting to Admin...' : 'Redirecting to Dashboard...') : 'Loading session...'}
         </p>
       </div>
     );
   }
 
-  // Standard Login Form UI (if not an OAuth callback and not loading/redirecting)
+  // Standard Login Form UI
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-primary via-secondary to-accent p-4">
       <Card className="w-full max-w-md shadow-2xl">
@@ -210,7 +226,7 @@ export default function LoginPage() {
             width={150} 
             height={50} 
             className="mx-auto mb-4"
-            data-ai-hint="abstract logo"
+            priority
           />
           <CardTitle className="text-3xl font-bold text-primary">Welcome Back</CardTitle>
           <CardDescription>Sign in to access your Campus Hub account.</CardDescription>
@@ -260,7 +276,7 @@ export default function LoginPage() {
               variant="outline" 
               className="w-full text-lg py-3" 
               onClick={handle42Login}
-              disabled={authLoading} // Disable if auth is generally loading
+              disabled={authLoading}
             >
               <Icon42 className="mr-2 h-5 w-5" />
               Sign in with 42
