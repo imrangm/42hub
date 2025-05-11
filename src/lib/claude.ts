@@ -30,69 +30,38 @@ function checkRateLimit(userId: string): boolean {
   return true;
 }
 
-export async function generateEventDescription(eventDetails: {
-  name: string;
-  date: string;
-  time: string;
-  location: string;
-  description: string;
-  keywords?: string;
-}, userId: string) {
+export async function generateClaudeEventDescription(title: string, keywords: string, userId = 'default-user') {
   try {
     // Check rate limit
     if (!checkRateLimit(userId)) {
       throw new Error('Rate limit exceeded. Please try again in a minute.');
     }
 
-    const prompt = `Generate a compelling event description for the following event:
-    Name: ${eventDetails.name}
-    Date: ${eventDetails.date}
-    Time: ${eventDetails.time}
-    Location: ${eventDetails.location}
-    Description: ${eventDetails.description}
-    Keywords: ${eventDetails.keywords || 'N/A'}
-
-    Please provide:
-    1. A detailed event description (2-3 paragraphs)
-    2. A short social media post (1-2 sentences)
-    3. An email snippet for promotion (2-3 sentences)
-
-    Format the response as JSON with the following structure:
-    {
-      "description": "detailed description here",
-      "socialMediaPost": "social media post here",
-      "emailSnippet": "email snippet here"
-    }`;
+    const prompt = `You are an event description writer. Write a compelling and engaging event description based on the following information.\n\nTitle: ${title}\nKeywords: ${keywords}\n\nWrite a short and engaging event description:`;
 
     const message = await anthropic.messages.create({
       model: 'claude-3-sonnet-20240229',
-      max_tokens: 1000,
+      max_tokens: 500,
       messages: [{ role: 'user', content: prompt }],
     });
 
-    // Handle the response properly
     const response = message.content[0];
     if (response.type !== 'text') {
       throw new Error('Unexpected response type from Claude API');
     }
 
-    return JSON.parse(response.text);
+    return response.text.trim();
   } catch (error: any) {
     console.error('Error generating event description:', error);
-    
-    // Handle specific error cases
     if (error.message.includes('rate limit')) {
       throw new Error('Rate limit exceeded. Please try again in a minute.');
     }
-    
     if (error.message.includes('invalid api key')) {
       throw new Error('Invalid API key. Please check your Anthropic API configuration.');
     }
-    
     if (error.message.includes('timeout')) {
       throw new Error('Request timed out. Please try again.');
     }
-    
     throw new Error('Failed to generate event description. Please try again later.');
   }
 } 
