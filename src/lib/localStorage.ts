@@ -5,7 +5,7 @@ const EVENTS_STORAGE_KEY = 'campusHubEvents';
 // Ensure functions are only called on the client side
 const isClient = typeof window !== 'undefined';
 
-export type NewEventPayload = Pick<CampusEvent, 'name' | 'date' | 'time' | 'location' | 'description' | 'organizers'> & { keywords?: string };
+export type NewEventPayload = Pick<CampusEvent, 'name' | 'date' | 'time' | 'location' | 'description' | 'organizers'>;
 
 export function getEvents(): CampusEvent[] {
   if (!isClient) return [];

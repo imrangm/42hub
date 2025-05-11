@@ -12,9 +12,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { addEvent, updateEvent, type NewEventPayload } from '@/lib/localStorage';
-import { handleGenerateDescription } from '@/lib/actions';
-import { Wand2, Loader2 } from 'lucide-react';
 import type { CampusEvent } from '@/lib/types';
+import { Loader2 } from 'lucide-react';
 
 const eventFormSchema = z.object({
   name: z.string().min(3, { message: 'Event name must be at least 3 characters.' }),
@@ -22,8 +21,7 @@ const eventFormSchema = z.object({
   time: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, { message: 'Invalid time format (HH:MM).' }),
   location: z.string().min(3, { message: 'Location must be at least 3 characters.' }),
   description: z.string().min(10, { message: 'Description must be at least 10 characters.' }),
-  organizers: z.string().min(2, { message: 'Organizer name must be at least 2 characters.' }),
-  keywords: z.string().optional(), // For AI description generation
+  organizers: z.string().min(2, { message: 'Organizer name must be at least 2 characters.' })
 });
 
 export type EventFormValues = z.infer<typeof eventFormSchema>;

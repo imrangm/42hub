@@ -5,13 +5,11 @@ import { useParams, useSearchParams } from 'next/navigation';
 import type { CampusEvent } from '@/lib/types';
 import { getEventById, updateEvent } from '@/lib/localStorage';
 import EventRegistrationForm from '@/components/EventRegistrationForm';
-import GeneratedContentDialog from '@/components/GeneratedContentDialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { CalendarDays, Clock, MapPin, Users, Info, Wand2, Loader2, Twitter, Mail, Edit, CalendarPlus } from 'lucide-react';
-import { handleGeneratePromotionalContent } from '@/lib/actions';
+import { CalendarDays, Clock, MapPin, Users, Info, Edit, CalendarPlus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -52,42 +50,6 @@ export default function EventDetailPage() {
 
   const handleSuccessfulRegistration = () => {
     fetchEventDetails();
-  };
-
-  const onGenerateContent = async (contentType: 'socialMediaPost' | 'emailSnippet') => {
-    if (!event?.description) {
-      toast({ title: "Error", description: "Event description is missing.", variant: "destructive" });
-      return;
-    }
-    setIsGeneratingContent(true);
-    setDialogTitle(contentType === 'socialMediaPost' ? 'Generated Social Media Post' : 'Generated Email Snippet');
-    setGeneratedContent(null); 
-    setIsDialogOpened(true);
-
-    try {
-      const result = await handleGeneratePromotionalContent(event.description, contentType);
-      if (result.success && result.content) {
-        setGeneratedContent(result.content);
-        if (event) { 
-          const updatedEventFields = {
-            [contentType === 'socialMediaPost' ? 'generatedSocialMediaPost' : 'generatedEmailSnippet']: result.content
-          };
-          const currentEventData = getEventById(event.id); 
-          if (currentEventData) {
-            const eventToUpdate = {...currentEventData, ...updatedEventFields};
-            updateEvent(eventToUpdate);
-            setEvent(eventToUpdate);
-          }
-        }
-      } else {
-        throw new Error(result.error || 'Unknown error generating content');
-      }
-    } catch (error: any) {
-      setGeneratedContent(`Failed to generate content: ${error.message}`);
-      toast({ title: "Error Generating Content", description: error.message, variant: "destructive" });
-    } finally {
-      setIsGeneratingContent(false);
-    }
   };
 
   const handleExportIcs = () => {
@@ -254,14 +216,6 @@ export default function EventDetailPage() {
           </Card>
         )}
       </div>
-
-      <GeneratedContentDialog
-        isOpen={isDialogOpenned}
-        onClose={() => setIsDialogOpened(false)}
-        title={dialogTitle}
-        content={generatedContent}
-        isLoading={isGeneratingContent}
-      />
     </div>
   );
 }
