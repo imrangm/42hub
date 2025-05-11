@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -30,17 +29,19 @@ export default function AdminLoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
+  // Effect to redirect if user state changes (e.g., after login) or if already logged in
   useEffect(() => {
-    if (!authLoading && user) {
-      if (role === 'admin') {
-        // Redirect to admin dashboard or intended admin page
-        // const intendedPath = sessionStorage.getItem('intendedAdminPath') || '/admin';
-        // sessionStorage.removeItem('intendedAdminPath');
-        router.push('/admin');
-      } else {
-        // If a non-admin somehow logs in via admin login, redirect to general dashboard
-        router.push('/dashboard');
+    if (!authLoading) { // Only proceed if auth status is determined
+      if (user) {
+        if (role === 'admin') {
+          // Admin is logged in, redirect to admin dashboard
+          router.push('/admin'); 
+        } else {
+          // Logged-in user is not an admin, redirect to general dashboard
+          router.push('/dashboard');
+        }
       }
+      // If user is null (and authLoading is false), stay on login page to show form
     }
   }, [user, authLoading, role, router]);
 
@@ -48,30 +49,23 @@ export default function AdminLoginPage() {
     setIsSubmittingForm(true);
     await signInWithCredentials(data.username, data.password);
     setIsSubmittingForm(false);
-    // Redirection is handled by useEffect or signInWithCredentials
+    // Redirection is handled by the useEffect above
   };
 
-  if (authLoading || (!authLoading && user && role === 'admin') ) {
+  // If auth is still loading, or if the user is logged in (and redirection should occur), show a loader.
+  if (authLoading || (!authLoading && user)) {
     return (
       <div className="flex flex-col min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
         <p className="mt-4 text-lg text-muted-foreground">
-          { user ? 'Redirecting to Admin Dashboard...' : 'Loading admin session...' }
+          {authLoading ? 'Loading session...' : 'Redirecting...'}
         </p>
       </div>
     );
   }
   
-  // If user is logged in but not admin, they shouldn't see this page.
-  // This case should ideally be handled by the admin layout if they try to access /admin/* first.
-  // If they directly navigate to /admin/login and are logged in as non-admin, redirect them.
-   useEffect(() => {
-    if (!authLoading && user && role !== 'admin') {
-      router.push('/dashboard');
-    }
-  }, [user, authLoading, role, router]);
-
-
+  // If not loading and no user, show the login form.
+  // This also handles the case where a non-admin user might land here before useEffect redirects them.
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-primary via-secondary to-accent p-4">
       <Card className="w-full max-w-md shadow-2xl">
@@ -107,6 +101,7 @@ export default function AdminLoginPage() {
                 id="password" 
                 type="password" 
                 {...register('password')} 
+                {...register('password')}
                 placeholder="Enter admin password" 
                 autoComplete="current-password"
               />
@@ -114,8 +109,8 @@ export default function AdminLoginPage() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col">
-            <Button type="submit" className="w-full text-lg py-3" disabled={isSubmittingForm || authLoading}>
-              {isSubmittingForm || authLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <LogIn className="mr-2 h-5 w-5" />}
+            <Button type="submit" className="w-full text-lg py-3" disabled={isSubmittingForm}>
+              {isSubmittingForm ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <LogIn className="mr-2 h-5 w-5" />}
               Sign In to Admin Panel
             </Button>
              <p className="mt-4 text-xs text-muted-foreground text-center">
