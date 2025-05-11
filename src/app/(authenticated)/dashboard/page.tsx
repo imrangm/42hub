@@ -17,21 +17,44 @@ export default function DashboardPage() {
 
   const fetchEvents = useCallback(() => {
     setIsLoading(true);
-    const allEvents = getEvents();
-    // Sort events by date and time, future events first
-    const sortedEvents = allEvents.sort((a, b) => {
-      const dateA = new Date(`${a.date}T${a.time}`).getTime();
-      const dateB = new Date(`${b.date}T${b.time}`).getTime();
-      return dateA - dateB;
-    });
-    setEvents(sortedEvents);
-    setIsLoading(false);
+    try {
+      const allEvents = getEvents();
+      // Sort events by date and time, future events first
+      const sortedEvents = allEvents.sort((a, b) => {
+        // Ensure date and time are valid before creating Date objects
+        const dateAValid = a.date && a.time;
+        const dateBValid = b.date && b.time;
+
+        if (!dateAValid && !dateBValid) return 0;
+        if (!dateAValid) return 1; // Put events without valid date/time last
+        if (!dateBValid) return -1; // Put events without valid date/time last
+        
+        const dateA = new Date(`${a.date}T${a.time}`).getTime();
+        const dateB = new Date(`${b.date}T${b.time}`).getTime();
+        
+        if (isNaN(dateA) && isNaN(dateB)) return 0;
+        if (isNaN(dateA)) return 1;
+        if (isNaN(dateB)) return -1;
+
+        return dateA - dateB;
+      });
+      setEvents(sortedEvents);
+    } catch (error) {
+      console.error("Error fetching or processing events:", error);
+      setEvents([]); // Set to empty or show an error message
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   useEffect(() => {
     fetchEvents();
     // Optional: Add event listener for storage changes from other tabs
-    const handleStorageChange = () => fetchEvents();
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'campusHubEvents') { // Only refetch if relevant storage changes
+        fetchEvents();
+      }
+    };
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
   }, [fetchEvents]);
@@ -48,7 +71,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-primary">Upcoming Events</h1>
+        <h1 className="text-3xl font-bold text-primary">Upcoming Events at 42 Abu Dhabi</h1>
       </div>
 
       {events.length === 0 ? (
@@ -57,7 +80,7 @@ export default function DashboardPage() {
           <p className="text-xl text-muted-foreground mb-4">No upcoming events found.</p>
           {role === 'admin' && ( // Only show Create Event button if user is admin
             <>
-              <p className="text-md text-muted-foreground mb-6">Why not create one?</p>
+              <p className="text-md text-muted-foreground mb-6">Time to schedule some innovative sessions!</p>
               <Button asChild size="lg">
                 <Link href="/admin/events/create"> {/* Link to admin create page */}
                   <PlusCircle className="mr-2 h-5 w-5" /> Create New Event
@@ -66,7 +89,7 @@ export default function DashboardPage() {
             </>
           )}
           {role !== 'admin' && (
-             <p className="text-md text-muted-foreground">Check back later for new events!</p>
+             <p className="text-md text-muted-foreground">Keep an eye out for new coding bootcamps, workshops, and community events!</p>
           )}
         </div>
       ) : (
