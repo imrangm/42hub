@@ -6,7 +6,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 
-export interface CustomUser { // Exporting for use in actions.ts
+export interface CustomUser {
   id: string;
   username: string;
   role: 'admin' | 'user';
@@ -19,7 +19,7 @@ interface AuthContextType {
   user: CustomUser | null;
   loading: boolean;
   signInWithCredentials: (username: string, password: string) => Promise<void>;
-  signInOAuthUser: (oauthUser: CustomUser) => Promise<void>; // New method for OAuth
+  signInOAuthUser: (oauthUser: CustomUser) => Promise<void>;
   signOut: () => Promise<void>;
   role: 'admin' | 'user' | null;
 }
@@ -82,15 +82,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(matchedUserEntry.user);
       sessionStorage.setItem('currentUser', JSON.stringify(matchedUserEntry.user));
       toast({ title: 'Login Successful', description: `Welcome, ${matchedUserEntry.user.displayName || matchedUserEntry.user.username}!` });
-      
-      if (matchedUserEntry.user.role === 'admin') {
-        router.push('/admin');
-      } else {
-        router.push('/dashboard');
-      }
+      // Redirection will be handled by the login page's useEffect
     } else {
       toast({ title: 'Login Failed', description: 'Invalid username or password.', variant: 'destructive' });
-      setUser(null); // Ensure user state is cleared on failure
+      setUser(null); 
       sessionStorage.removeItem('currentUser');
     }
     setLoading(false);
@@ -98,14 +93,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signInOAuthUser = async (oauthUser: CustomUser) => {
     setLoading(true);
-    // Here, you might want to check if this OAuth user already exists in your system
-    // or create/update their record. For this mock, we'll just use the provided user.
     setUser(oauthUser);
     sessionStorage.setItem('currentUser', JSON.stringify(oauthUser));
     toast({ title: 'Login Successful', description: `Welcome, ${oauthUser.displayName || oauthUser.username}!` });
-    
-    // OAuth users are typically regular users, redirect to dashboard
-    router.push('/dashboard');
+    // Redirection will be handled by the login page's useEffect
     setLoading(false);
   };
 
@@ -117,12 +108,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     sessionStorage.removeItem('currentUser');
     toast({ title: 'Signed Out', description: 'You have been successfully signed out.' });
     
+    // Determine correct login page to redirect to
     if (isAdminPage && pathname !== '/admin/login') {
       router.push('/admin/login');
-    } else if (!isAdminPage && pathname !== '/login') {
+    } else if (!pathname.endsWith('/login') && !isAdminPage) { // Avoid redirecting if already on a general login page or if it's an admin page
       router.push('/login');
     }
-    // If already on a login page, no need to push again.
     setLoading(false);
   };
 
