@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -44,12 +44,24 @@ const Icon42 = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-export default function LoginPage() {
+// Loading component for Suspense fallback
+const LoadingFallback = () => (
+  <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-primary via-secondary to-accent p-4">
+    <Card className="w-full max-w-md shadow-2xl">
+      <CardContent className="flex flex-col items-center justify-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="mt-4 text-muted-foreground">Loading...</p>
+      </CardContent>
+    </Card>
+  </div>
+);
+
+// Main login component
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { signInWithCredentials, signInOAuthUser, user, loading: authLoading, role } = useAuth();
   const [isSubmittingForm, setIsSubmittingForm] = useState(false);
-  const [isClient, setIsClient] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   const [oauthProcessing, setOAuthProcessing] = useState(false);
@@ -62,7 +74,6 @@ export default function LoginPage() {
   // Set mounted state after component mounts
   useEffect(() => {
     setMounted(true);
-    setIsClient(true);
   }, []);
 
   // Effect to handle 42 OAuth callback if 'code' or 'error' params are present
@@ -145,16 +156,7 @@ export default function LoginPage() {
 
   // Show loading state during SSR
   if (!mounted) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-primary via-secondary to-accent p-4">
-        <Card className="w-full max-w-md shadow-2xl">
-          <CardContent className="flex flex-col items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="mt-4 text-muted-foreground">Loading...</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <LoadingFallback />;
   }
 
   // OAuth Callback Processing UI
@@ -163,7 +165,7 @@ export default function LoginPage() {
       <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-primary via-secondary to-accent p-4">
         <Card className="w-full max-w-md shadow-xl">
           <CardHeader className="text-center py-8">
-            <Image 
+            <DynamicImage 
               src="https://picsum.photos/seed/login-logo/150/50" 
               alt="Campus Hub Logo" 
               width={150} 
@@ -187,7 +189,7 @@ export default function LoginPage() {
       <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-primary via-secondary to-accent p-4">
         <Card className="w-full max-w-md shadow-xl">
           <CardHeader className="text-center py-8">
-            <Image 
+            <DynamicImage 
               src="https://picsum.photos/seed/login-logo/150/50" 
               alt="Campus Hub Logo" 
               width={150} 
@@ -226,7 +228,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-primary via-secondary to-accent p-4">
       <Card className="w-full max-w-md shadow-2xl">
         <CardHeader className="text-center">
-          <Image 
+          <DynamicImage 
             src="https://picsum.photos/seed/login-logo/150/50" 
             alt="Campus Hub Logo" 
             width={150} 
@@ -291,6 +293,15 @@ export default function LoginPage() {
         </form>
       </Card>
     </div>
+  );
+}
+
+// Main page component with Suspense boundary
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <LoginContent />
+    </Suspense>
   );
 }
 
