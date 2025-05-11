@@ -5,6 +5,7 @@ import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useRouter, useSearchParams } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,6 +15,9 @@ import { Loader2, LogIn, AlertTriangle } from 'lucide-react';
 import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
 import { handle42Callback } from './actions';
+
+// Dynamically import components that use browser APIs
+const DynamicImage = dynamic(() => import('next/image'), { ssr: false });
 
 const loginSchema = z.object({
   username: z.string().min(1, { message: 'Username is required.' }),
@@ -46,6 +50,7 @@ export default function LoginPage() {
   const { signInWithCredentials, signInOAuthUser, user, loading: authLoading, role } = useAuth();
   const [isSubmittingForm, setIsSubmittingForm] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const [oauthProcessing, setOAuthProcessing] = useState(false);
   const [oauthError, setOAuthError] = useState<string | null>(null);
@@ -54,14 +59,15 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
-  // Set isClient to true after component mounts
+  // Set mounted state after component mounts
   useEffect(() => {
+    setMounted(true);
     setIsClient(true);
   }, []);
 
   // Effect to handle 42 OAuth callback if 'code' or 'error' params are present
   useEffect(() => {
-    if (!isClient) return; // Skip if not client-side
+    if (!mounted) return;
 
     const code = searchParams.get('code');
     const error = searchParams.get('error');
@@ -100,11 +106,11 @@ export default function LoginPage() {
         setOAuthProcessing(false);
       }
     }
-  }, [searchParams, signInOAuthUser, router, user, authLoading, isClient]);
+  }, [searchParams, signInOAuthUser, router, user, authLoading, mounted]);
 
   // Effect to redirect already logged-in users
   useEffect(() => {
-    if (!isClient) return; // Skip if not client-side
+    if (!mounted) return;
 
     if (!authLoading && user) {
       if (!searchParams.get('code') && !searchParams.get('error')) {
@@ -112,7 +118,7 @@ export default function LoginPage() {
         else router.push('/dashboard');
       }
     }
-  }, [user, authLoading, role, router, searchParams, isClient]);
+  }, [user, authLoading, role, router, searchParams, mounted]);
 
   const onSubmit: SubmitHandler<LoginFormValues> = async (data) => {
     setIsSubmittingForm(true);
@@ -121,7 +127,7 @@ export default function LoginPage() {
   };
 
   const handle42Login = () => {
-    if (!isClient) return; // Skip if not client-side
+    if (!mounted) return;
 
     const clientId = process.env.NEXT_PUBLIC_FORTYTWO_CLIENT_ID;
     const redirectUri = process.env.NEXT_PUBLIC_FORTYTWO_REDIRECT_URI;
@@ -138,7 +144,7 @@ export default function LoginPage() {
   };
 
   // Show loading state during SSR
-  if (!isClient) {
+  if (!mounted) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-primary via-secondary to-accent p-4">
         <Card className="w-full max-w-md shadow-2xl">
