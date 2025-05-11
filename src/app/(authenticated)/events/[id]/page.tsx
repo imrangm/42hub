@@ -11,13 +11,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { CalendarDays, Clock, MapPin, Users, Info, Wand2, Loader2, Twitter, Mail, Edit } from 'lucide-react';
+import { CalendarDays, Clock, MapPin, Users, Info, Wand2, Loader2, Twitter, Mail, Edit, CalendarPlus } from 'lucide-react';
 import { handleGeneratePromotionalContent } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
-
+import { formatToICSDateString, escapeICSDescription } from '@/lib/utils';
 
 export default function EventDetailPage() {
   const params = useParams();
@@ -73,7 +73,7 @@ export default function EventDetailPage() {
           const updatedEventFields = {
             [contentType === 'socialMediaPost' ? 'generatedSocialMediaPost' : 'generatedEmailSnippet']: result.content
           };
-          const currentEventData = getEventById(event.id); // Get latest event data
+          const currentEventData = getEventById(event.id); 
           if (currentEventData) {
             const eventToUpdate = {...currentEventData, ...updatedEventFields};
             updateEvent(eventToUpdate);
@@ -90,6 +90,48 @@ export default function EventDetailPage() {
       setIsGeneratingContent(false);
     }
   };
+
+  const handleExportIcs = () => {
+    if (!event) return;
+
+    const startDate = new Date(`${event.date}T${event.time}`);
+    // Assume 1 hour duration if no end time specified.
+    // For more complex scenarios, you'd need an end date/time field.
+    const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); 
+
+    const icsContent = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//CampusHub//NONSGML Event Calendar//EN',
+      'BEGIN:VEVENT',
+      `UID:${event.id}@campushub.events`,
+      `DTSTAMP:${formatToICSDateString(new Date())}`,
+      `DTSTART:${formatToICSDateString(startDate)}`,
+      `DTEND:${formatToICSDateString(endDate)}`,
+      `SUMMARY:${event.name}`,
+      `DESCRIPTION:${escapeICSDescription(event.description)}`,
+      `LOCATION:${event.location}`,
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ].join('\r\n');
+
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8;' });
+    const link = document.createElement('a');
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `${event.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.ics`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast({ title: 'Calendar File Exported', description: 'Event has been downloaded as an .ics file.' });
+    } else {
+      toast({ title: 'Export Failed', description: 'Your browser does not support this feature.', variant: 'destructive'});
+    }
+  };
+
 
   if (isLoading || authLoading) {
     return (
@@ -119,7 +161,6 @@ export default function EventDetailPage() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-      {/* Main Event Details Column */}
       <div className="md:col-span-2 space-y-6">
         <Card className="shadow-lg">
           <div className="relative h-64 w-full overflow-hidden rounded-t-lg">
@@ -152,6 +193,10 @@ export default function EventDetailPage() {
               </div>
             </div>
             
+            <Button onClick={handleExportIcs} variant="outline" size="sm" className="w-full sm:w-auto">
+              <CalendarPlus className="mr-2 h-4 w-4" /> Add to Calendar
+            </Button>
+
             <Separator />
 
             <h3 className="text-xl font-semibold text-primary">About this Event</h3>
@@ -175,7 +220,6 @@ export default function EventDetailPage() {
           </CardContent>
         </Card>
 
-        {/* Attendees Card - Moved here */}
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="text-xl flex items-center text-primary">
@@ -198,7 +242,6 @@ export default function EventDetailPage() {
         </Card>
 
 
-        {/* AI Content Generation Section - Admin Only */}
         {isAdminView && (
           <Card className="shadow-lg">
             <CardHeader>
@@ -224,9 +267,8 @@ export default function EventDetailPage() {
         )}
       </div>
 
-      {/* Sidebar Column for Registration */}
       <div className="space-y-6">
-        {!isAdminView && ( // Hide registration form for admin view of this page
+        {!isAdminView && ( 
           <Card className="shadow-lg sticky top-24">
             <CardHeader>
               <CardTitle className="text-xl text-primary">Register</CardTitle>

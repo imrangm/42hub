@@ -19,13 +19,15 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { PlusCircle, Search, Loader2, CalendarX2, Upload } from 'lucide-react';
+import { PlusCircle, Search, Loader2, CalendarX2, Upload, Download } from 'lucide-react';
+import { formatToICSDateString, escapeCsvField } from '@/lib/utils'; // Added escapeCsvField
 
 export default function ManageEventsPage() {
   const [allEvents, setAllEvents] = useState<CampusEvent[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isImporting, setIsImporting] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [eventToDelete, setEventToDelete] = useState<CampusEvent | null>(null);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -53,7 +55,7 @@ export default function ManageEventsPage() {
         event.name.toLowerCase().includes(lowerSearchTerm) ||
         event.description.toLowerCase().includes(lowerSearchTerm) ||
         event.location.toLowerCase().includes(lowerSearchTerm) ||
-        event.organizers.toLowerCase().includes(lowerSearchTerm)
+        (event.organizers && event.organizers.toLowerCase().includes(lowerSearchTerm))
       );
     });
   }, [allEvents, searchTerm]);
@@ -101,7 +103,7 @@ export default function ManageEventsPage() {
       }
 
       const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-      const expectedHeaders = ['name', 'date', 'time', 'location', 'description', 'organizers']; // keywords is optional
+      const expectedHeaders = ['name', 'date', 'time', 'location', 'description', 'organizers']; 
       
       const missingHeaders = expectedHeaders.filter(eh => !headers.includes(eh));
       if (missingHeaders.length > 0) {
@@ -114,7 +116,6 @@ export default function ManageEventsPage() {
       let errorCount = 0;
 
       for (let i = 1; i < lines.length; i++) {
-        // Basic CSV splitting, not robust for complex CSVs with escaped commas/quotes
         const values = lines[i].split(','); 
         const eventData: Record<string, string> = {};
         headers.forEach((header, index) => {
@@ -163,7 +164,7 @@ export default function ManageEventsPage() {
       fetchEvents();
       setIsImporting(false);
       if (fileInputRef.current) {
-        fileInputRef.current.value = ''; // Reset file input
+        fileInputRef.current.value = ''; 
       }
     };
 
@@ -172,6 +173,44 @@ export default function ManageEventsPage() {
       setIsImporting(false);
     };
     reader.readAsText(file);
+  };
+
+  const handleExportCsv = () => {
+    setIsExporting(true);
+    const headers = ['ID', 'Name', 'Date', 'Time', 'Location', 'Description', 'Organizers', 'Keywords', 'Attendees Count', 'Registered Attendees (Emails)'];
+    const csvRows = [headers.join(',')];
+
+    filteredEvents.forEach(event => {
+      const row = [
+        escapeCsvField(event.id),
+        escapeCsvField(event.name),
+        escapeCsvField(event.date),
+        escapeCsvField(event.time),
+        escapeCsvField(event.location),
+        escapeCsvField(event.description),
+        escapeCsvField(event.organizers || ''),
+        escapeCsvField(event.keywords || ''),
+        event.attendees.length.toString(),
+        escapeCsvField(event.attendees.map(a => a.email).join('; '))
+      ];
+      csvRows.push(row.join(','));
+    });
+
+    const csvString = csvRows.join('\r\n');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'campus_events_export.csv');
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+    setIsExporting(false);
+    toast({ title: 'CSV Exported', description: 'Events data has been downloaded.' });
   };
 
 
@@ -188,8 +227,8 @@ export default function ManageEventsPage() {
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
         <h1 className="text-3xl font-bold text-primary">Manage Events</h1>
-        <div className="flex flex-col sm:flex-row gap-2">
-            <Button onClick={() => fileInputRef.current?.click()} disabled={isImporting || isLoading} variant="outline">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <Button onClick={() => fileInputRef.current?.click()} disabled={isImporting || isLoading} variant="outline" className="w-full sm:w-auto">
                 {isImporting ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Upload className="mr-2 h-5 w-5" />}
                 Import CSV
             </Button>
@@ -201,7 +240,11 @@ export default function ManageEventsPage() {
                 style={{ display: 'none' }} 
                 id="csv-importer"
             />
-            <Button asChild>
+             <Button onClick={handleExportCsv} disabled={isExporting || isLoading || filteredEvents.length === 0} variant="outline" className="w-full sm:w-auto">
+                {isExporting ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Download className="mr-2 h-5 w-5" />}
+                Export CSV
+            </Button>
+            <Button asChild className="w-full sm:w-auto">
                 <Link href="/admin/events/create">
                 <PlusCircle className="mr-2 h-5 w-5" /> Create New Event
                 </Link>
