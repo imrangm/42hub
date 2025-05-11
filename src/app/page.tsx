@@ -53,7 +53,7 @@ export default function LandingPage() {
       {/* Features Section */}
       <section className="py-16 bg-gray-800">
         <div className="container mx-auto px-6">
-          <h2 className="text-4xl font-bold text-center mb-12 text-primary-foreground">Why 42Hub?</h2>
+          <h2 className="text-4xl font-bold text-center mb-12 text-primary-foreground">Why Campus Hub?</h2>
           <div className="grid md:grid-cols-3 gap-10">
             <div className="bg-gray-700 p-8 rounded-xl shadow-2xl transform transition-transform hover:scale-105 hover:shadow-accent/30">
               <div className="flex items-center justify-center mb-6">
@@ -88,7 +88,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="py-8 text-center bg-gray-900 border-t border-gray-700">
-        <p className="text-gray-500">&copy; {new Date().getFullYear()} 42Hub. All rights reserved.</p>
+        <p className="text-gray-500">&copy; {new Date().getFullYear()} Campus Hub. All rights reserved.</p>
       </footer>
     </div>
   );

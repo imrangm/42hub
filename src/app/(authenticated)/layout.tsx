@@ -14,12 +14,8 @@ export default function AuthenticatedLayout({ children }: { children: ReactNode 
 
   useEffect(() => {
     if (!loading && !user) {
-      // Store intended path to redirect after login, if desired
-      // localStorage.setItem('intendedPath', pathname);
-      router.replace('/login'); // Changed to replace
+      router.replace('/login');
     }
-    // If an admin somehow lands on a non-admin authenticated page, that's fine.
-    // If a non-admin tries to access /admin/*, the AdminLayout will handle it.
   }, [user, loading, router, pathname, role]);
 
   if (loading || !user) { 
@@ -31,7 +27,6 @@ export default function AuthenticatedLayout({ children }: { children: ReactNode 
     );
   }
 
-  // User is authenticated. Role check for admin specific routes is handled by AdminLayout.
   return (
     <div className="flex flex-col min-h-screen">
       <Header />

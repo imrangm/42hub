@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import Header from '@/components/Header';
 import { useAuth } from '@/contexts/AuthContext'; 
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -11,7 +11,6 @@ import { useToast } from '@/hooks/use-toast';
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const { user, loading, role } = useAuth(); 
   const router = useRouter();
-  const pathname = usePathname();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -27,7 +26,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           variant: 'destructive',
         });
         router.replace('/');
-        return;
       }
     }
   }, [user, loading, role, router, toast]);
@@ -45,7 +43,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     return null;
   }
 
-  // User is authenticated and is an admin
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
