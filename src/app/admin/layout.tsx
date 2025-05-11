@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { ReactNode } from 'react';
@@ -20,14 +19,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       if (!user) {
         // Store intended admin path to redirect after admin login, if desired
         // sessionStorage.setItem('intendedAdminPath', pathname);
-        router.push('/admin/login'); 
+        router.replace('/admin/login'); // Changed to replace
       } else if (role !== 'admin') {
         toast({
           title: 'Access Denied',
           description: 'You do not have permission to access the admin area.',
           variant: 'destructive',
         });
-        router.push('/dashboard'); // Redirect non-admins to their dashboard
+        router.replace('/dashboard'); // Changed to replace
       }
     }
   }, [user, loading, role, router, pathname, toast]);

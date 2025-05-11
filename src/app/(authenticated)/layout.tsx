@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { ReactNode } from 'react';
@@ -17,7 +16,7 @@ export default function AuthenticatedLayout({ children }: { children: ReactNode 
     if (!loading && !user) {
       // Store intended path to redirect after login, if desired
       // localStorage.setItem('intendedPath', pathname);
-      router.push('/login'); // Redirect to general login page
+      router.replace('/login'); // Changed to replace
     }
     // If an admin somehow lands on a non-admin authenticated page, that's fine.
     // If a non-admin tries to access /admin/*, the AdminLayout will handle it.
