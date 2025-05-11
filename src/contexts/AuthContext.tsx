@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { ReactNode } from 'react';
@@ -103,17 +102,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signOut = async () => {
     setLoading(true);
     await new Promise(resolve => setTimeout(resolve, 300));
-    const isAdminPage = pathname.startsWith('/admin');
     setUser(null);
     sessionStorage.removeItem('currentUser');
     toast({ title: 'Signed Out', description: 'You have been successfully signed out.' });
-    
-    // Determine correct login page to redirect to
-    if (isAdminPage && pathname !== '/admin/login') {
-      router.push('/admin/login');
-    } else if (!pathname.endsWith('/login') && !isAdminPage) { // Avoid redirecting if already on a general login page or if it's an admin page
-      router.push('/login');
-    }
+    router.push('/'); // Always go to homepage after logout
     setLoading(false);
   };
 

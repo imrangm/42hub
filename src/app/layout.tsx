@@ -1,4 +1,3 @@
-
 'use client'; // Add this if not already present, for useEffect
 
 import type { ReactNode } from 'react'; // Keep this for type consistency
@@ -7,6 +6,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from '@/contexts/AuthContext'; 
+import Head from 'next/head';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -41,23 +41,18 @@ export default function RootLayout({
     }
   }, []);
 
-  // If metadata needs to be dynamic or depend on client-side logic, it's more complex.
-  // For static metadata, it's best in page.tsx or a server component layout.
-  // Adding a simple dynamic title update as an example if needed, though manifest is static.
   useEffect(() => {
-    document.title = 'Campus Hub';
-    const link = document.createElement('link');
-    link.rel = 'manifest';
-    link.href = '/manifest.json';
-    document.head.appendChild(link);
-    return () => {
-      document.head.removeChild(link);
-    }
+    document.title = '42 Abu Dhabi Campus Hub';
   }, []);
-
 
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="alternate icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#002e5d" />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen bg-background`}>
         <AuthProvider>
           {children}
