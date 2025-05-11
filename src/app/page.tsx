@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -33,10 +32,10 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-black opacity-60"></div>
         <div className="relative z-10 max-w-3xl">
           <h1 className="text-5xl md:text-7xl font-extrabold mb-6 leading-tight">
-            Unlock Your Campus Potential
+            42 Abu Dhabi Campus Hub
           </h1>
           <p className="text-xl md:text-2xl text-gray-300 mb-10">
-            Discover events, connect with peers, and supercharge your university experience with Campus Hub.
+            Where coding meets community. Your hub for campus life and peer learning.
           </p>
           <Button 
             onClick={handleGetStartedClick}
@@ -46,7 +45,7 @@ export default function LandingPage() {
           >
             {loading ? <Loader2 className="mr-3 h-6 w-6 animate-spin" /> : 
              user ? <ArrowRightCircle className="mr-3 h-6 w-6" /> : <LogIn className="mr-3 h-6 w-6" /> }
-            {user ? (user.role === 'admin' ? 'Go to Admin Panel' : 'Go to Dashboard') : 'Get Started / Sign In'}
+            {user ? (user.role === 'admin' ? 'Go to Admin Panel' : 'Go to Dashboard') : 'Sign In'}
           </Button>
         </div>
       </section>
@@ -54,33 +53,33 @@ export default function LandingPage() {
       {/* Features Section */}
       <section className="py-16 bg-gray-800">
         <div className="container mx-auto px-6">
-          <h2 className="text-4xl font-bold text-center mb-12 text-primary-foreground">Why Campus Hub?</h2>
+          <h2 className="text-4xl font-bold text-center mb-12 text-primary-foreground">Why 42Hub?</h2>
           <div className="grid md:grid-cols-3 gap-10">
             <div className="bg-gray-700 p-8 rounded-xl shadow-2xl transform transition-transform hover:scale-105 hover:shadow-accent/30">
               <div className="flex items-center justify-center mb-6">
                 <BookOpen className="h-12 w-12 text-accent" />
               </div>
-              <h3 className="text-2xl font-semibold mb-3 text-center text-primary-foreground">Discover Events</h3>
+              <h3 className="text-2xl font-semibold mb-3 text-center text-primary-foreground">Peer Learning</h3>
               <p className="text-gray-400 text-center leading-relaxed">
-                Never miss out on workshops, seminars, club meetings, or social gatherings on campus.
+                Join coding workshops, peer evaluations, and collaborative learning sessions.
               </p>
             </div>
             <div className="bg-gray-700 p-8 rounded-xl shadow-2xl transform transition-transform hover:scale-105 hover:shadow-accent/30">
               <div className="flex items-center justify-center mb-6">
                 <Users className="h-12 w-12 text-accent" />
               </div>
-              <h3 className="text-2xl font-semibold mb-3 text-center text-primary-foreground">Connect with Peers</h3>
+              <h3 className="text-2xl font-semibold mb-3 text-center text-primary-foreground">Community Events</h3>
               <p className="text-gray-400 text-center leading-relaxed">
-                Find like-minded individuals and build your network by attending events that match your interests.
+                Connect through hackathons, tech talks, and social gatherings.
               </p>
             </div>
             <div className="bg-gray-700 p-8 rounded-xl shadow-2xl transform transition-transform hover:scale-105 hover:shadow-accent/30">
               <div className="flex items-center justify-center mb-6">
                 <Zap className="h-12 w-12 text-accent" />
               </div>
-              <h3 className="text-2xl font-semibold mb-3 text-center text-primary-foreground">Stay Organized</h3>
+              <h3 className="text-2xl font-semibold mb-3 text-center text-primary-foreground">Stay Updated</h3>
               <p className="text-gray-400 text-center leading-relaxed">
-                Keep track of your event registrations and campus activities all in one place.
+                Never miss important events, evaluations, or community activities.
               </p>
             </div>
           </div>
@@ -89,7 +88,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="py-8 text-center bg-gray-900 border-t border-gray-700">
-        <p className="text-gray-500">&copy; {new Date().getFullYear()} Campus Hub. Inspired by innovation.</p>
+        <p className="text-gray-500">&copy; {new Date().getFullYear()} 42Hub. All rights reserved.</p>
       </footer>
     </div>
   );

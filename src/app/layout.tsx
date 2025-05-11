@@ -43,15 +43,27 @@ export default function RootLayout({
 
   useEffect(() => {
     document.title = '42 Abu Dhabi Campus Hub';
+    
+    const existingFavicon = document.querySelector("link[rel*='icon']") as HTMLLinkElement | null;
+    if (existingFavicon) {
+      existingFavicon.href = '/favicon.svg';
+      existingFavicon.type = 'image/svg+xml';
+    } else {
+      const favicon = document.createElement('link') as HTMLLinkElement;
+      favicon.type = 'image/svg+xml';
+      favicon.rel = 'icon';
+      favicon.href = '/favicon.svg';
+      document.getElementsByTagName('head')[0].appendChild(favicon);
+    }
   }, []);
 
   return (
     <html lang="en">
       <head>
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <link rel="alternate icon" type="image/x-icon" href="/favicon.ico" />
-        <link rel="manifest" href="/manifest.json" />
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#002e5d" />
+        <link rel="manifest" href="/manifest.json" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen bg-background`}>
         <AuthProvider>

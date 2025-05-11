@@ -17,29 +17,32 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!loading) {
       if (!user) {
-        // Store intended admin path to redirect after admin login, if desired
-        // sessionStorage.setItem('intendedAdminPath', pathname);
-        router.replace('/admin/login'); // Changed to replace
-      } else if (role !== 'admin') {
+        router.replace('/');
+        return;
+      }
+      if (role !== 'admin') {
         toast({
           title: 'Access Denied',
           description: 'You do not have permission to access the admin area.',
           variant: 'destructive',
         });
-        router.replace('/dashboard'); // Changed to replace
+        router.replace('/');
+        return;
       }
     }
-  }, [user, loading, role, router, pathname, toast]);
+  }, [user, loading, role, router, toast]);
 
-  if (loading || !user || role !== 'admin') { 
+  if (loading) {
     return (
       <div className="flex flex-col min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
-        <p className="mt-4 text-lg text-muted-foreground">
-          {loading ? 'Loading admin session...' : 'Verifying admin credentials...'}
-        </p>
+        <p className="mt-4 text-lg text-muted-foreground">Loading...</p>
       </div>
     );
+  }
+
+  if (!user || role !== 'admin') {
+    return null;
   }
 
   // User is authenticated and is an admin
