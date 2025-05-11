@@ -1,4 +1,3 @@
-
 export interface EventAttendee {
   id: string;
   name: string;
@@ -14,9 +13,4 @@ export interface CampusEvent {
   description: string;
   organizers: string; // Could be a comma-separated string or an array of names
   attendees: EventAttendee[];
-  // Optional fields for AI content generation
-  keywords?: string; 
-  generatedDescription?: string;
-  generatedSocialMediaPost?: string;
-  generatedEmailSnippet?: string;
 }

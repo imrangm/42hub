@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -240,31 +239,6 @@ export default function EventDetailPage() {
             )}
           </CardContent>
         </Card>
-
-
-        {isAdminView && (
-          <Card className="shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-xl flex items-center text-primary">
-                <Wand2 className="mr-2 h-5 w-5 text-accent" /> AI Promotional Tools (Admin)
-              </CardTitle>
-              <CardDescription>Generate promotional content for this event.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button onClick={() => onGenerateContent('socialMediaPost')} className="w-full justify-start" variant="outline" disabled={isGeneratingContent}>
-                {isGeneratingContent && dialogTitle.includes('Social') ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Twitter className="mr-2 h-4 w-4 text-blue-500" />}
-                Generate Social Media Post
-              </Button>
-              {event.generatedSocialMediaPost && <p className="text-xs text-muted-foreground p-2 border rounded-md bg-muted/30">Last generated post: {event.generatedSocialMediaPost.substring(0,70)}...</p>}
-
-              <Button onClick={() => onGenerateContent('emailSnippet')} className="w-full justify-start" variant="outline" disabled={isGeneratingContent}>
-                {isGeneratingContent && dialogTitle.includes('Email') ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4 text-red-500" />}
-                Generate Email Snippet
-              </Button>
-               {event.generatedEmailSnippet && <p className="text-xs text-muted-foreground p-2 border rounded-md bg-muted/30">Last generated email: {event.generatedEmailSnippet.substring(0,70)}...</p>}
-            </CardContent>
-          </Card>
-        )}
       </div>
 
       <div className="space-y-6">

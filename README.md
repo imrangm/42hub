@@ -9,7 +9,6 @@ A modern web application for managing and discovering events at 42 Abu Dhabi. Bu
 - Real-time updates
 - Responsive design
 - Modern UI with Tailwind CSS
-- AI-powered event descriptions and promotional content
 
 ## Tech Stack
 
@@ -17,7 +16,6 @@ A modern web application for managing and discovering events at 42 Abu Dhabi. Bu
 - **Backend**: Netlify Functions
 - **Authentication**: Netlify Identity + 42 OAuth
 - **Deployment**: Netlify
-- **AI**: Anthropic Claude API
 
 ## Getting Started
 
@@ -43,9 +41,6 @@ NEXT_PUBLIC_FORTYTWO_CLIENT_ID=""
 FORTYTWO_CLIENT_SECRET=""
 NEXT_PUBLIC_APP_URL=""
 NEXT_PUBLIC_FORTYTWO_REDIRECT_URI=""
-
-# Anthropic Claude API Configuration
-ANTHROPIC_API_KEY=""
 ```
 
 4. Run the development server:
@@ -78,10 +73,9 @@ To deploy:
    - Add 42 OAuth provider
    - Use the same credentials from your 42 OAuth application
 
-3. **Environment Variables**:
-   - Set up all required environment variables in Site settings > Environment variables
-   - Make sure to include all variables listed in the `.env` section above
-   - For the Anthropic API key, you can get it from https://console.anthropic.com/
+## Next Steps
+
+AI-powered event description and promotional content generation features are planned for a future version. Stay tuned!
 
 ## Contributing
 

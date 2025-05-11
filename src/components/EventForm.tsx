@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -36,14 +35,12 @@ interface EventFormProps {
 export default function EventForm({ eventToEdit }: EventFormProps) {
   const router = useRouter();
   const { toast } = useToast();
-  const [isGeneratingDesc, setIsGeneratingDesc] = useState(false);
   const isEditMode = !!eventToEdit;
 
   const { register, handleSubmit, setValue, watch, reset, formState: { errors, isSubmitting } } = useForm<EventFormValues>({
     resolver: zodResolver(eventFormSchema),
     defaultValues: {
       date: new Date().toISOString().split('T')[0], // Default to today for new events
-      keywords: '',
     }
   });
 
@@ -56,7 +53,6 @@ export default function EventForm({ eventToEdit }: EventFormProps) {
         location: eventToEdit.location,
         description: eventToEdit.description,
         organizers: eventToEdit.organizers,
-        keywords: eventToEdit.keywords || '',
       });
     } else if (!isEditMode) {
         // Ensure form is reset to default for new event creation if eventToEdit becomes undefined
@@ -67,45 +63,9 @@ export default function EventForm({ eventToEdit }: EventFormProps) {
             location: '',
             description: '',
             organizers: '',
-            keywords: '',
         });
     }
   }, [isEditMode, eventToEdit, reset]);
-
-  const eventNameForAI = watch('name');
-  const keywordsForAI = watch('keywords');
-
-  const onGenerateDescription = async () => {
-    if (!eventNameForAI || !keywordsForAI) {
-      toast({
-        title: 'Missing Information',
-        description: 'Please enter an event name and keywords to generate a description.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    setIsGeneratingDesc(true);
-    try {
-      const result = await handleGenerateDescription(eventNameForAI, keywordsForAI);
-      if (result.success && result.description) {
-        setValue('description', result.description, { shouldValidate: true });
-        toast({
-          title: 'Description Generated',
-          description: 'AI has populated the event description.',
-        });
-      } else {
-        throw new Error(result.error || 'Unknown error generating description');
-      }
-    } catch (error: any) {
-      toast({
-        title: 'Error Generating Description',
-        description: error.message || 'An unexpected error occurred.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsGeneratingDesc(false);
-    }
-  };
 
   const onSubmit: SubmitHandler<EventFormValues> = (data) => {
     try {
@@ -130,7 +90,6 @@ export default function EventForm({ eventToEdit }: EventFormProps) {
             location: data.location,
             description: data.description,
             organizers: data.organizers,
-            keywords: data.keywords || undefined,
         };
         const newEvent = addEvent(newEventPayload);
         toast({ title: 'Event Created!', description: `"${newEvent.name}" has been successfully created.` });
@@ -190,18 +149,8 @@ export default function EventForm({ eventToEdit }: EventFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="keywords">Keywords for AI Description (Optional)</Label>
-            <Input id="keywords" {...register('keywords')} placeholder="e.g., technology, innovation, students, startups" />
-            <p className="text-xs text-muted-foreground">Used with Event Name to generate description.</p>
-          </div>
-          
-          <div className="space-y-2">
             <div className="flex justify-between items-center">
               <Label htmlFor="description">Event Description</Label>
-              <Button type="button" variant="outline" size="sm" onClick={onGenerateDescription} disabled={isGeneratingDesc || !eventNameForAI || !keywordsForAI}>
-                {isGeneratingDesc ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                Generate with AI
-              </Button>
             </div>
             <Textarea id="description" {...register('description')} placeholder="Describe the event..." rows={5} />
             {errors.description && <p className="text-sm text-destructive">{errors.description.message}</p>}
@@ -209,7 +158,7 @@ export default function EventForm({ eventToEdit }: EventFormProps) {
 
         </CardContent>
         <CardFooter>
-          <Button type="submit" className="w-full" disabled={isSubmitting || isGeneratingDesc}>
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             {isEditMode ? 'Update Event' : 'Create Event'}
           </Button>

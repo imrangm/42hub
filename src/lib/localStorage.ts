@@ -1,4 +1,3 @@
-
 import type { CampusEvent, EventAttendee } from '@/lib/types';
 
 const EVENTS_STORAGE_KEY = 'campusHubEvents';
@@ -31,11 +30,6 @@ export function addEvent(newEventData: NewEventPayload): CampusEvent {
     location: newEventData.location,
     description: newEventData.description,
     organizers: newEventData.organizers,
-    keywords: newEventData.keywords,
-    // Initialize AI generated fields as undefined
-    generatedDescription: undefined,
-    generatedSocialMediaPost: undefined,
-    generatedEmailSnippet: undefined,
   };
   events.push(fullEvent);
   saveEvents(events);
