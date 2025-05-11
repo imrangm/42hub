@@ -1,62 +1,74 @@
-# Firebase Studio
+# 42 Abu Dhabi Events Hub
 
-This is a NextJS starter in Firebase Studio.
+A modern web application for managing and discovering events at 42 Abu Dhabi. Built with Next.js, Firebase, and deployed on Netlify.
 
-To get started, take a look at src/app/page.tsx.
+## Features
 
-## Environment Variables
+- Event management and discovery
+- User authentication with 42 OAuth
+- Real-time updates
+- Responsive design
+- Modern UI with Tailwind CSS
 
-Create a `.env` file in the root of your project and add the following environment variables. Replace placeholder values with your actual credentials if they differ from the examples derived from your setup.
+## Tech Stack
 
-### Firebase Configuration (Optional - if using Firebase features)
+- **Frontend**: Next.js, React, Tailwind CSS
+- **Backend**: Firebase (Authentication, Firestore)
+- **Deployment**: Netlify
+- **Authentication**: 42 OAuth
 
-```env
-NEXT_PUBLIC_FIREBASE_API_KEY="YOUR_API_KEY"
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="YOUR_AUTH_DOMAIN"
-NEXT_PUBLIC_FIREBASE_PROJECT_ID="YOUR_PROJECT_ID"
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="YOUR_STORAGE_BUCKET"
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="YOUR_MESSAGING_SENDER_ID"
-NEXT_PUBLIC_FIREBASE_APP_ID="YOUR_APP_ID"
-NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID="YOUR_MEASUREMENT_ID"
+## Getting Started
+
+1. Clone the repository:
+```bash
+git clone https://github.com/imrangm/42hub.git
+cd 42hub
 ```
 
-If you are not using Firebase services that require these (like Firebase Auth, Firestore through Firebase SDK directly), you can leave the default placeholder values if the application checks allow it, or use mock values. Note that the current `src/lib/firebase.ts` might throw an error if critical Firebase configs are placeholders and Firebase services are initialized.
-
-### 42 OAuth Configuration
-
-To enable "Sign in with 42" functionality, you need to register an application with the 42 Intra API and obtain a Client ID and Client Secret.
-
-**The example values below are taken from the screenshot you provided. Use your actual credentials if they differ, but ensure the `NEXT_PUBLIC_FORTYTWO_REDIRECT_URI` exactly matches what's in your 42 app settings.**
-
-```env
-NEXT_PUBLIC_FORTYTWO_CLIENT_ID="u-s4t2ud-63b1e7c5cdf76e52e3ad7264504ab99364dbf5f568d3a653b41825bc4878a731"
-# This is your 42 application's UID. Example from your screenshot.
-
-FORTYTWO_CLIENT_SECRET="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"
-# This is your 42 application's Secret. Example from your screenshot.
-
-NEXT_PUBLIC_APP_URL="https://6000-firebase-studio-1746805799490.cluster-axf5tvtfjjfekvhwxwkkkzsk2y.cloudworkstations.dev"
-# This is the base URL of your application.
-# Example for local development: "http://localhost:9002"
-# Example for deployed (from your screenshot): "https://6000-firebase-studio-1746805799490.cluster-axf5tvtfjjfekvhwxwkkkzsk2y.cloudworkstations.dev"
-
-NEXT_PUBLIC_FORTYTWO_REDIRECT_URI="https://6000-firebase-studio-1746805799490.cluster-axf5tvtfjjfekvhwxwkkkzsk2y.cloudworkstations.dev/login"
-# This MUST be the EXACT Redirect URI registered in your 42 OAuth application settings.
-# It will typically be NEXT_PUBLIC_APP_URL + "/login".
-# Example for local development: "http://localhost:9002/login"
-# Example for deployed (from your screenshot): "https://6000-firebase-studio-1746805799490.cluster-axf5tvtfjjfekvhwxwkkkzsk2y.cloudworkstations.dev/login"
-# Ensure this full URL is listed in your 42 app's "Redirect URI" field(s) and exactly matches.
+2. Install dependencies:
+```bash
+npm install
 ```
 
-**Important Notes for 42 OAuth:**
--   `NEXT_PUBLIC_FORTYTWO_CLIENT_ID` is your 42 application's UID.
--   `FORTYTWO_CLIENT_SECRET` is your 42 application's Secret.
--   `NEXT_PUBLIC_APP_URL` should be the base URL of your application (e.g., `http://localhost:9002` for local development, or your production domain, **without** a trailing slash).
--   `NEXT_PUBLIC_FORTYTWO_REDIRECT_URI` is the **full and exact** callback URL that 42 will redirect users to after authentication. The path is `/login`. This URI must be **identical** to what you have configured in your 42 OAuth application settings. Check for typos, HTTP vs HTTPS, and trailing slashes. The value in the `.env` file *must exactly match* the value in the 42 Developer Portal.
+3. Create a `.env` file in the root directory with the following variables:
+```env
+# Firebase Configuration
+NEXT_PUBLIC_FIREBASE_API_KEY=""
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=""
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=""
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=""
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=""
+NEXT_PUBLIC_FIREBASE_APP_ID=""
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=""
 
-**After setting up or modifying your `.env` file, you MUST restart your Next.js development server for the changes to take effect.**
-If you still encounter "The redirect uri included is not valid" error:
-1. Double-check the `NEXT_PUBLIC_FORTYTWO_REDIRECT_URI` in your `.env` file.
-2. Double-check the "Redirect URI" field in your 42 application settings on `https://profile.intra.42.fr/oauth/applications`.
-3. Ensure they are absolutely identical (copy-paste is best).
-4. Restart your Next.js server (`npm run dev`).
+# 42 OAuth Configuration
+NEXT_PUBLIC_FORTYTWO_CLIENT_ID=""
+FORTYTWO_CLIENT_SECRET=""
+NEXT_PUBLIC_APP_URL=""
+NEXT_PUBLIC_FORTYTWO_REDIRECT_URI=""
+```
+
+4. Run the development server:
+```bash
+npm run dev
+```
+
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Deployment
+
+This project is configured for deployment on Netlify. The `netlify.toml` file contains the necessary build settings.
+
+To deploy:
+1. Push your changes to GitHub
+2. Connect your repository to Netlify
+3. Set up the environment variables in Netlify's dashboard
+4. Deploy!
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
